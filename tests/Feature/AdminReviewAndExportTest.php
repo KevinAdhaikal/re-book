@@ -64,7 +64,7 @@ class AdminReviewAndExportTest extends TestCase
      */
     public function test_admin_can_view_review_moderation_page()
     {
-        $response = $this->actingAs($this->admin)->get(route('admin.reviews.index'));
+        $response = $this->actingAs($this->admin)->get(route('admin.reviews.index', ['book_id' => $this->book->id]));
         $response->assertStatus(200);
         $response->assertSee('Moderasi Ulasan Global');
         $response->assertSee($this->review->content);

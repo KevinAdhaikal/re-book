@@ -139,5 +139,8 @@ class DatabaseSeeder extends Seeder
         foreach ($badWords as $w) {
             BadWord::firstOrCreate(['word' => $w]);
         }
+
+        // 5. Data Komunitas Organik (Buku Fiksi/Manga, User Persona, Top 4, Ulasan, Rak, Follow)
+        $this->call(OrganicCommunitySeeder::class);
     }
 }
