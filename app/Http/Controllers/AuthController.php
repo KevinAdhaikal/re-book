@@ -16,9 +16,17 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge([
+            'email' => strtolower(trim($request->input('email', ''))),
+        ]);
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+        ], [
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
         ]);
 
         if (Auth::attempt($credentials)) {
@@ -38,7 +46,7 @@ class AuthController extends Controller
             return redirect()->route('member.profile');
         }
 
-        return back()->withErrors(['email' => 'Email atau password salah.']);
+        return back()->withInput($request->only('email'))->withErrors(['email' => 'Email atau password salah.']);
     }
 
     public function showRegisterForm()
@@ -48,10 +56,24 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $request->merge([
+            'name' => trim($request->input('name', '')),
+            'email' => strtolower(trim($request->input('email', ''))),
+        ]);
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.max' => 'Nama lengkap maksimal 255 karakter.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'email.unique' => 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau masuk.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal harus 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         $user = User::create([
@@ -64,7 +86,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('member.profile');
+        return redirect()->route('member.profile')->with('success', 'Selamat datang di Re:Book, ' . $user->name . '! Akun Anda berhasil didaftarkan.');
     }
 
     public function logout(Request $request)
