@@ -36,8 +36,45 @@
     .font-serif { font-family: var(--font-serif); }
     .main-content { flex: 1; padding: 30px 40px; }
 
+    /* 3D Book Card & Spine Depth */
+    .book-card {
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.2s ease;
+    }
+    .book-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.5);
+      border-color: #388BFD !important;
+    }
+    .book-cover-wrap {
+      position: relative;
+      overflow: hidden;
+      height: 260px;
+      background: #12161c;
+    }
+    .book-cover-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 8px;
+      background: linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+      pointer-events: none;
+    }
+    .book-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .book-card:hover .book-cover-img {
+      transform: scale(1.04);
+    }
+
     @media (max-width: 768px) {
       .main-content { padding: 20px 16px; }
+      .book-cover-wrap { height: 220px; }
     }
   </style>
   @stack('styles')

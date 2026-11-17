@@ -26,20 +26,7 @@
     <div style="display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap;">
       
       <!-- Avatar Profil -->
-      <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: #21262d; border: 3px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-        @if($member->avatarUrl())
-          <img src="{{ $member->avatarUrl() }}" alt="{{ $member->name }}" 
-               onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';"
-               style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: var(--member-accent);">
-            {{ strtoupper(substr($member->name, 0, 1)) }}
-          </div>
-        @else
-          <div style="font-size: 2.5rem; font-weight: bold; color: var(--member-accent);">
-            {{ strtoupper(substr($member->name, 0, 1)) }}
-          </div>
-        @endif
-      </div>
+      <x-user-avatar :user="$member" size="xl" />
 
       <!-- Info Utama Member (Nama, Bio, Genre, Stats) -->
       <div style="flex: 1; min-width: 280px;">
@@ -137,39 +124,7 @@
     @else
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px;">
         @foreach ($favoriteBooks as $b)
-          <div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              @if(isset($b->cover) && $b->cover)
-                <img src="{{ asset('storage/' . $b->cover) }}" alt="{{ $b->title }}"
-                     onerror="this.onerror=null; this.parentElement.querySelector('.cover-fallback').style.display='flex'; this.style.display='none';"
-                     style="width: 100%; height: 250px; object-fit: cover; display: block;">
-                <div class="cover-fallback" style="display: none; width: 100%; height: 250px; background-color: #0d1117; flex-direction: column; align-items: center; justify-content: center; color: #8b949e; font-size: 0.75rem; padding: 15px; text-align: center;">
-                  <i class="fa-solid fa-book" style="font-size: 2rem; color: #30363d; margin-bottom: 6px;"></i>
-                  <span>{{ Str::limit($b->title, 25) }}</span>
-                </div>
-              @else
-                <div style="width: 100%; height: 250px; background-color: #0d1117; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8b949e; font-size: 0.75rem; padding: 15px; text-align: center;">
-                  <i class="fa-solid fa-book" style="font-size: 2rem; color: #30363d; margin-bottom: 6px;"></i>
-                  <span>{{ Str::limit($b->title, 25) }}</span>
-                </div>
-              @endif
-
-              <div style="padding: 12px;">
-                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.72rem; margin-bottom: 4px;">
-                  <span style="color: var(--star-rating);">★</span>
-                  <span style="color: #8b949e;">{{ number_format($b->reviews_avg_rating ?? ($b->reviews ? $b->reviews->avg('rating') : 0), 1) }}</span>
-                </div>
-                <h4 style="color: white; font-size: 0.9rem; font-weight: 600; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $b->title }}">{{ $b->title }}</h4>
-                <p style="color: #8b949e; font-size: 0.75rem; margin: 0;">{{ $b->genre ?? 'Novel' }} &bull; {{ $b->author }}</p>
-              </div>
-            </div>
-
-            <div style="padding: 0 12px 12px 12px;">
-              <a href="{{ route('books.show', $b->id) }}" style="display: block; width: 100%; text-align: center; background-color: #21262d; color: #58a6ff; font-size: 0.78rem; font-weight: 600; padding: 7px 0; border-radius: 6px; text-decoration: none;">
-                Lihat Ulasan
-              </a>
-            </div>
-          </div>
+          <x-book-card :book="$b" :showLike="false" badge="⭐ Top 4" badgeColor="#d29922" />
         @endforeach
       </div>
     @endif

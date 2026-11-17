@@ -50,49 +50,18 @@
   @else
     <div id="liked-books-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
       @foreach($likedBooks as $book)
-        <div id="liked-card-{{ $book->id }}" class="liked-book-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; position: relative; transition: opacity 0.25s ease, transform 0.25s ease;">
-
-          {{-- Tombol Unlike di Pojok Kanan Atas Cover --}}
-          <form action="{{ route('member.likes.toggle', $book->id) }}" method="POST" class="form-like-toggle" data-book-id="{{ $book->id }}" style="position: absolute; top: 10px; right: 10px; z-index: 99; margin: 0;">
-            @csrf
-            <button type="button" class="btn-unlike-card" data-book-id="{{ $book->id }}" data-action="{{ route('member.likes.toggle', $book->id) }}" title="Hapus dari Buku Disukai"
-              style="background-color: #0d1117; border: 1px solid #30363d; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #F78166; font-size: 0.95rem; cursor: pointer; padding: 0; transition: transform 0.15s ease;">
-              <i class="fa-solid fa-heart"></i>
-            </button>
-          </form>
-
-          <div>
-            @if($book->cover)
-              <img src="{{ asset('storage/' . $book->cover) }}"
-                   alt="{{ $book->title }}"
-                   onerror="this.onerror=null; this.parentElement.querySelector('.cover-fallback').style.display='flex'; this.style.display='none';"
-                   style="width: 100%; height: 250px; object-fit: cover; display: block;">
-              <div class="cover-fallback" style="display: none; width: 100%; height: 250px; background: #161b22; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: center; padding: 15px;">
-                <i class="fa-solid fa-book" style="font-size: 2.2rem; color: #30363d;"></i>
-                <span style="font-size: 0.8rem; font-weight: 500; color: #8b949e;">{{ Str::limit($book->title, 25) }}</span>
-              </div>
-            @else
-              <div style="width: 100%; height: 250px; background: #161b22; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: center; padding: 15px;">
-                <i class="fa-solid fa-book" style="font-size: 2.2rem; color: #30363d;"></i>
-                <span style="font-size: 0.8rem; font-weight: 500; color: #8b949e;">{{ Str::limit($book->title, 25) }}</span>
-              </div>
-            @endif
-
-            <div style="padding: 12px; display: flex; flex-direction: column;">
-              <div style="color: var(--star-rating); font-size: 0.9rem; margin-bottom: 6px;">
-                <i class="fa-solid fa-star"></i> {{ number_format($book->reviews_avg_rating ?? 0, 1) }}
-              </div>
-              <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $book->title }}">{{ $book->title }}</h4>
-              <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0 0 12px 0;">{{ $book->genre }} &bull; {{ $book->author }}</p>
-            </div>
-          </div>
-
-          <div style="padding: 0 12px 12px 12px;">
-            <a href="{{ route('books.show', $book->id) }}" style="display: block; width: 100%; text-align: center; background: #21262D; color: var(--member-accent); font-size: 0.85rem; font-weight: 600; padding: 6px 0; border-radius: 6px; text-decoration: none;">
-              Lihat Ulasan
-            </a>
-          </div>
-        </div>
+        <x-book-card :book="$book" id="liked-card-{{ $book->id }}" class="liked-book-card" :showLike="false">
+          <x-slot:topRight>
+            {{-- Tombol Unlike di Pojok Kanan Atas Cover --}}
+            <form action="{{ route('member.likes.toggle', $book->id) }}" method="POST" class="form-like-toggle" data-book-id="{{ $book->id }}" style="position: absolute; top: 10px; right: 10px; z-index: 10; margin: 0;">
+              @csrf
+              <button type="button" class="btn-unlike-card" data-book-id="{{ $book->id }}" data-action="{{ route('member.likes.toggle', $book->id) }}" title="Hapus dari Buku Disukai"
+                style="background-color: rgba(13, 17, 23, 0.88); backdrop-filter: blur(4px); border: 1px solid #30363d; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #F78166; font-size: 0.95rem; cursor: pointer; padding: 0; transition: transform 0.15s ease;">
+                <i class="fa-solid fa-heart"></i>
+              </button>
+            </form>
+          </x-slot:topRight>
+        </x-book-card>
       @endforeach
     </div>
   @endif

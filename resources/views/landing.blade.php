@@ -253,80 +253,7 @@
         @php
           $isLiked = in_array($b->id, $userLikedIds);
         @endphp
-        <div class="book-card">
-
-          {{-- Tombol Love di Pojok Kanan Atas Cover --}}
-          @auth
-            <button type="button" class="btn-like-toggle" data-book-id="{{ $b->id }}" data-action="{{ route('member.likes.toggle', $b->id) }}" title="{{ $isLiked ? 'Batal Sukai' : 'Sukai Buku' }}"
-              style="position: absolute; top: 10px; right: 10px; z-index: 10; background-color: rgba(13, 17, 23, 0.88); backdrop-filter: blur(4px); border: 1px solid #30363d; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: {{ $isLiked ? '#F78166' : '#8B949E' }}; font-size: 0.95rem; padding: 0; transition: transform 0.15s ease, color 0.2s ease;">
-              <i class="{{ $isLiked ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
-            </button>
-          @else
-            <a href="{{ route('login') }}" title="Login untuk menyukai buku"
-              style="position: absolute; top: 10px; right: 10px; z-index: 10; background-color: rgba(13, 17, 23, 0.88); backdrop-filter: blur(4px); border: 1px solid #30363d; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8B949E; text-decoration: none; font-size: 0.95rem;">
-              <i class="fa-regular fa-heart"></i>
-            </a>
-          @endauth
-
-          {{-- Book Cover Container with Spine Crease --}}
-          <div class="book-cover-wrap">
-            @if($b->cover)
-              <img
-                src="{{ asset('storage/' . $b->cover) }}"
-                alt="{{ $b->title }}"
-                class="book-cover-img"
-                onerror="this.onerror=null; this.parentElement.querySelector('.cover-fallback').style.display='flex'; this.style.display='none';">
-              <div class="cover-fallback" style="display: none; width: 100%; height: 100%; background: #161b22; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: center; padding: 15px;">
-                <i class="fa-solid fa-book" style="font-size: 2.2rem; color: #30363d;"></i>
-                <span style="font-size: 0.8rem; font-weight: 500; color: #8b949e;">{{ Str::limit($b->title, 25) }}</span>
-              </div>
-            @else
-              <div style="width: 100%; height: 100%; background: #161b22; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: center; padding: 15px;">
-                <i class="fa-solid fa-book" style="font-size: 2.2rem; color: #30363d;"></i>
-                <span style="font-size: 0.8rem; font-weight: 500; color: #8b949e;">{{ Str::limit($b->title, 25) }}</span>
-              </div>
-            @endif
-          </div>
-
-          {{-- Card Content --}}
-          <div style="padding: 14px; display: flex; flex-direction: column; flex-grow: 1;">
-            
-            {{-- Meta Row: Rating & Likes --}}
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <div style="color: var(--star-rating); font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                <i class="fa-solid fa-star"></i> {{ number_format($b->reviews_avg_rating ?? 0, 1) }}
-                <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: normal;">({{ $b->reviews_count ?? $b->reviews->count() }})</span>
-              </div>
-              <div style="color: var(--text-muted); font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;" title="Jumlah pembaca yang menyukai buku ini">
-                <i class="fa-solid fa-heart" style="color: #F78166; font-size: 0.75rem;"></i>
-                <span id="book-likes-count-{{ $b->id }}">{{ $b->liked_by_users_count ?? $b->likedByUsers->count() }}</span>
-              </div>
-            </div>
-
-            {{-- Title --}}
-            <h4 style="margin-bottom: 6px; font-size: 0.95rem; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em;" title="{{ $b->title }}">
-              {{ $b->title }}
-            </h4>
-
-            {{-- Author & Genre --}}
-            <div style="margin-bottom: 14px;">
-              <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                <i class="fa-solid fa-user-pen" style="font-size: 0.72rem; margin-right: 4px;"></i> {{ $b->author }}
-              </p>
-              <span style="display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #8B949E; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">
-                {{ $b->genre }}
-              </span>
-            </div>
-
-            {{-- Action Link --}}
-            <a href="{{ route('books.show', $b->id) }}"
-              style="margin-top: auto; background: #21262D; color: #58A6FF; text-align: center; padding: 8px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
-              <span>Lihat Ulasan</span>
-              <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem;"></i>
-            </a>
-
-          </div>
-        </div>
+        <x-book-card :book="$b" :isLiked="$isLiked" />
       @empty
         <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
           <i class="fa-solid fa-book-open" style="font-size: 2.5rem; color: #30363d; margin-bottom: 12px;"></i>
@@ -373,13 +300,7 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <a href="{{ $review->user ? route('users.profile', $review->user->id) : '#' }}" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 44px; height: 44px; background: var(--member-accent); color: #fff; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; border: 1px solid var(--border-color); flex-shrink: 0;">
-                    @if($review->user && $review->user->avatarUrl())
-                      <img src="{{ $review->user->avatarUrl() }}" alt="{{ $review->user->name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    @else
-                      {{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}
-                    @endif
-                  </div>
+                  <x-user-avatar :user="$review->user" size="md" />
                   <div>
                     <h4 style="margin: 0; color: var(--text-main); font-size: 1rem; font-weight: 700;">
                       {{ $review->user->name ?? 'Pengguna' }}
@@ -417,13 +338,7 @@
                   <div style="background: rgba(255, 255, 255, 0.03); padding: 9px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                     <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1;">
                       <a href="{{ $comment->user ? route('users.profile', $comment->user->id) : '#' }}" style="text-decoration: none; flex-shrink: 0;">
-                        <div style="width: 26px; height: 26px; border-radius: 50%; overflow: hidden; background: var(--member-accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold; margin-top: 2px; border: 1px solid var(--border-color);">
-                          @if($comment->user && $comment->user->avatarUrl())
-                            <img src="{{ $comment->user->avatarUrl() }}" alt="{{ $comment->user->name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                          @else
-                            {{ strtoupper(substr($comment->user->name ?? 'M', 0, 1)) }}
-                          @endif
-                        </div>
+                        <x-user-avatar :user="$comment->user" size="xs" />
                       </a>
                       <div>
                         <a href="{{ $comment->user ? route('users.profile', $comment->user->id) : '#' }}" style="font-weight: 600; font-size: 0.85rem; color: #58A6FF; text-decoration: none;">

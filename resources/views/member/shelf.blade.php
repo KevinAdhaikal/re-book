@@ -94,8 +94,8 @@
               <a href="{{ route('books.show', $b->id) }}" style="color: var(--text-main); text-decoration: none;">{{ $b->title }}</a>
             </h4>
             <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 6px;">{{ $b->author }} • <span style="color: #7d8590;">{{ $b->genre }}</span></p>
-            <div style="color: var(--star-rating); font-size: 0.8rem;">
-              <i class="fa-solid fa-star"></i> {{ number_format($b->reviews->avg('rating') ?? 0, 1) }}
+            <div style="margin-top: 4px;">
+              <x-star-rating :rating="$b->reviews->avg('rating') ?? 0" size="xs" />
             </div>
           </div>
 

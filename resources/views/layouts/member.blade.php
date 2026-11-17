@@ -6,10 +6,16 @@
   <title>@yield('title', 'Member Dashboard - Re:Book')</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  {{-- Google Fonts: Plus Jakarta Sans & Lora Serif --}}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --bg-main: #0D1117;
       --bg-card: #161B22;
+      --bg-card-hover: #1C2129;
       --border-color: #30363D;
       --text-main: #F0F6FC;
       --text-muted: #8B949E;
@@ -18,10 +24,12 @@
       --admin-danger: #DA3633;
       --star-rating: #E3B341;
       --favorite-coral: #F78166;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-serif: 'Lora', Georgia, serif;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-sans); }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
 
     /* Layout Flexbox dengan Sidebar */
     .member-wrapper { display: flex; flex: 1; }
@@ -36,6 +44,42 @@
 
     /* Content Area */
     .member-content { flex: 1; padding: 30px 40px; }
+
+    /* 3D Book Card & Spine Depth */
+    .book-card {
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.2s ease;
+    }
+    .book-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.5);
+      border-color: #388BFD !important;
+    }
+    .book-cover-wrap {
+      position: relative;
+      overflow: hidden;
+      height: 250px;
+      background: #12161c;
+    }
+    .book-cover-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 8px;
+      background: linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+      pointer-events: none;
+    }
+    .book-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .book-card:hover .book-cover-img {
+      transform: scale(1.04);
+    }
 
     /* Alert / Session Banner */
     .alert-success { background: rgba(35, 134, 54, 0.2); border: 1px solid #238636; color: #3fb950; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; }
