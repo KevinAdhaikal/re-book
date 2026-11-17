@@ -43,17 +43,27 @@ class ReviewModerationController extends Controller
 
         // Pengurutan (Sorting)
         $sort = $request->input('sort', 'newest');
-        if ($sort === 'oldest') {
-            $query->oldest('id');
+        if ($sort === 'oldest' || $sort === 'id_asc') {
+            $query->oldest('reviews.id');
         } elseif ($sort === 'rating_desc') {
-            $query->orderByDesc('rating')->latest('id');
+            $query->orderByDesc('rating')->latest('reviews.id');
         } elseif ($sort === 'rating_asc') {
-            $query->orderBy('rating', 'asc')->latest('id');
-        } elseif ($sort === 'likes') {
-            $query->orderByDesc('liked_by_users_count')->latest('id');
+            $query->orderBy('rating', 'asc')->latest('reviews.id');
+        } elseif ($sort === 'likes' || $sort === 'likes_desc') {
+            $query->orderByDesc('liked_by_users_count')->latest('reviews.id');
+        } elseif ($sort === 'likes_asc') {
+            $query->orderBy('liked_by_users_count', 'asc')->latest('reviews.id');
+        } elseif ($sort === 'user_asc') {
+            $query->join('users', 'users.id', '=', 'reviews.user_id')->orderBy('users.name', 'asc')->select('reviews.*');
+        } elseif ($sort === 'user_desc') {
+            $query->join('users', 'users.id', '=', 'reviews.user_id')->orderBy('users.name', 'desc')->select('reviews.*');
+        } elseif ($sort === 'book_asc') {
+            $query->join('books', 'books.id', '=', 'reviews.book_id')->orderBy('books.title', 'asc')->select('reviews.*');
+        } elseif ($sort === 'book_desc') {
+            $query->join('books', 'books.id', '=', 'reviews.book_id')->orderBy('books.title', 'desc')->select('reviews.*');
         } else {
             // Default: Terbaru
-            $query->latest('id');
+            $query->latest('reviews.id');
         }
 
         $reviews = $query->paginate(15)->withQueryString();

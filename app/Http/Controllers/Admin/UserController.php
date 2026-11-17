@@ -28,16 +28,28 @@ class UserController extends Controller
         }
 
         // Pengurutan (Sorting)
-        if ($sort === 'oldest') {
+        if ($sort === 'oldest' || $sort === 'id_asc') {
             $query->oldest('id');
         } elseif ($sort === 'name_asc') {
             $query->orderBy('name', 'asc');
         } elseif ($sort === 'name_desc') {
             $query->orderBy('name', 'desc');
-        } elseif ($sort === 'reviews') {
+        } elseif ($sort === 'email_asc') {
+            $query->orderBy('email', 'asc');
+        } elseif ($sort === 'email_desc') {
+            $query->orderBy('email', 'desc');
+        } elseif ($sort === 'reviews' || $sort === 'reviews_desc') {
             $query->orderByDesc('reviews_count')->orderBy('name', 'asc');
-        } elseif ($sort === 'shelves') {
+        } elseif ($sort === 'reviews_asc') {
+            $query->orderBy('reviews_count', 'asc')->orderBy('name', 'asc');
+        } elseif ($sort === 'shelves' || $sort === 'shelves_desc') {
             $query->orderByDesc('reading_shelves_count')->orderBy('name', 'asc');
+        } elseif ($sort === 'shelves_asc') {
+            $query->orderBy('reading_shelves_count', 'asc')->orderBy('name', 'asc');
+        } elseif ($sort === 'status_asc') {
+            $query->orderBy('status', 'asc')->orderBy('name', 'asc');
+        } elseif ($sort === 'status_desc') {
+            $query->orderBy('status', 'desc')->orderBy('name', 'asc');
         } else {
             // Default: Terbaru Mendaftar
             $query->latest('id');

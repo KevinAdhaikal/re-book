@@ -111,4 +111,25 @@ class AdminPanelRevampTest extends TestCase
             $response->assertSee('name="sort"', false);
         }
     }
+
+    public function test_admin_tables_have_sortable_column_headers()
+    {
+        // Books table
+        $resBooks = $this->actingAs($this->admin)->get(route('admin.books.manage'));
+        $resBooks->assertStatus(200);
+        $resBooks->assertSee('sort=title_desc', false);
+        $resBooks->assertSee('fa-sort', false);
+
+        // Users table
+        $resUsers = $this->actingAs($this->admin)->get(route('admin.users.index'));
+        $resUsers->assertStatus(200);
+        $resUsers->assertSee('sort=name_asc', false);
+        $resUsers->assertSee('fa-sort', false);
+
+        // Reviews table
+        $resReviews = $this->actingAs($this->admin)->get(route('admin.reviews.index'));
+        $resReviews->assertStatus(200);
+        $resReviews->assertSee('sort=rating_desc', false);
+        $resReviews->assertSee('fa-sort', false);
+    }
 }

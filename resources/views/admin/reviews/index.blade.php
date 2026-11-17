@@ -78,13 +78,13 @@
   <table class="custom-table" style="margin: 0; border: none;">
     <thead>
       <tr>
-        <th style="width: 60px;">ID</th>
-        <th style="width: 220px;">Buku</th>
-        <th style="width: 180px;">Member</th>
-        <th style="width: 90px;">Rating</th>
+        <x-sort-th column="id" :current="$sort" asc="oldest" desc="newest" default="desc" style="width: 70px;">ID</x-sort-th>
+        <x-sort-th column="book" :current="$sort" asc="book_asc" desc="book_desc" default="asc" style="width: 220px;">Buku</x-sort-th>
+        <x-sort-th column="user" :current="$sort" asc="user_asc" desc="user_desc" default="asc" style="width: 180px;">Member</x-sort-th>
+        <x-sort-th column="rating" :current="$sort" asc="rating_asc" desc="rating_desc" default="desc" style="width: 100px;">Rating</x-sort-th>
         <th>Isi Ulasan</th>
-        <th style="width: 120px;">Interaksi</th>
-        <th style="width: 110px;">Tanggal</th>
+        <x-sort-th column="likes" :current="$sort" asc="likes_asc" desc="likes" default="desc" style="width: 120px;">Interaksi</x-sort-th>
+        <x-sort-th column="created_at" :current="$sort" asc="oldest" desc="newest" default="desc" style="width: 120px;">Tanggal</x-sort-th>
         <th style="width: 80px; text-align: center;">Aksi</th>
       </tr>
     </thead>

@@ -63,10 +63,10 @@
 <table class="custom-table" style="margin-top: 0;">
   <thead>
     <tr>
-      <th style="width: 60px;">ID</th>
-      <th>Member</th>
-      <th>Aktivitas Komunitas</th>
-      <th>Status</th>
+      <x-sort-th column="id" :current="$sort" asc="oldest" desc="newest" default="desc" style="width: 70px;">ID</x-sort-th>
+      <x-sort-th column="name" :current="$sort" asc="name_asc" desc="name_desc" default="asc">Member</x-sort-th>
+      <x-sort-th column="activity" :current="$sort" asc="reviews_asc" desc="reviews" default="desc">Aktivitas Komunitas</x-sort-th>
+      <x-sort-th column="status" :current="$sort" asc="status_asc" desc="status_desc" default="asc">Status</x-sort-th>
       <th style="width: 200px;">Aksi Admin</th>
     </tr>
   </thead>

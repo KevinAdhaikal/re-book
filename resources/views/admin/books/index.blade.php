@@ -70,11 +70,11 @@
 <table class="custom-table" style="margin-top: 0;">
   <thead>
     <tr>
-      <th style="width: 60px;">ID</th>
+      <x-sort-th column="id" :current="$sort" asc="id_asc" desc="id_desc" default="desc" style="width: 70px;">ID</x-sort-th>
       <th style="width: 70px;">Cover</th>
-      <th>Judul Buku & Penulis</th>
-      <th>Genre</th>
-      <th>Rating & Respon</th>
+      <x-sort-th column="title" :current="$sort" asc="title_asc" desc="title_desc" default="asc">Judul Buku & Penulis</x-sort-th>
+      <x-sort-th column="genre" :current="$sort" asc="genre_asc" desc="genre_desc" default="asc">Genre</x-sort-th>
+      <x-sort-th column="rating" :current="$sort" asc="rating_asc" desc="rating_desc" default="desc">Rating & Respon</x-sort-th>
       <th style="width: 170px;">Aksi Admin</th>
     </tr>
   </thead>

@@ -194,16 +194,30 @@ class BookController extends Controller
         // Pengurutan (Sorting)
         if ($sort === 'title_desc') {
             $query->orderBy('title', 'desc');
+        } elseif ($sort === 'id_asc' || $sort === 'oldest') {
+            $query->oldest('id');
+        } elseif ($sort === 'id_desc' || $sort === 'newest') {
+            $query->latest('id');
+        } elseif ($sort === 'author_asc') {
+            $query->orderBy('author', 'asc');
+        } elseif ($sort === 'author_desc') {
+            $query->orderBy('author', 'desc');
+        } elseif ($sort === 'genre_asc') {
+            $query->orderBy('genre', 'asc')->orderBy('title', 'asc');
+        } elseif ($sort === 'genre_desc') {
+            $query->orderBy('genre', 'desc')->orderBy('title', 'asc');
         } elseif ($sort === 'rating_desc') {
             $query->orderByDesc('reviews_avg_rating')->orderBy('title', 'asc');
         } elseif ($sort === 'rating_asc') {
             $query->orderBy('reviews_avg_rating', 'asc')->orderBy('title', 'asc');
-        } elseif ($sort === 'popular') {
+        } elseif ($sort === 'popular' || $sort === 'likes_desc') {
             $query->orderByDesc('liked_by_users_count')->orderByDesc('reviews_avg_rating');
-        } elseif ($sort === 'reviews') {
+        } elseif ($sort === 'likes_asc') {
+            $query->orderBy('liked_by_users_count', 'asc')->orderBy('title', 'asc');
+        } elseif ($sort === 'reviews' || $sort === 'reviews_desc') {
             $query->orderByDesc('reviews_count')->orderBy('title', 'asc');
-        } elseif ($sort === 'newest') {
-            $query->latest('id');
+        } elseif ($sort === 'reviews_asc') {
+            $query->orderBy('reviews_count', 'asc')->orderBy('title', 'asc');
         } else {
             // Default: Judul A-Z
             $query->orderBy('title', 'asc');
