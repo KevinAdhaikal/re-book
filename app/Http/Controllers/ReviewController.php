@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Review;
 use App\Models\Comment;
 use App\Models\BadWord;
+use App\Services\ContentFilterService;
 
 class ReviewController extends Controller
 {
@@ -144,13 +145,6 @@ class ReviewController extends Controller
      */
     private function filterBadWords($text)
     {
-        $badWords = BadWord::pluck('word')->toArray();
-
-        foreach ($badWords as $word) {
-            $replacement = str_repeat('*', strlen($word));
-            $text = preg_replace('/\b' . preg_quote($word, '/') . '\b/i', $replacement, $text);
-        }
-
-        return $text;
+        return ContentFilterService::filter($text);
     }
 }

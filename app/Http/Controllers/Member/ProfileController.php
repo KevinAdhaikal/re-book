@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\User;
+use App\Services\ContentFilterService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
@@ -50,7 +52,33 @@ class ProfileController extends Controller
         // Daftar genre yang dapat dipilih
         $availableGenres = $this->defaultGenres;
 
-        return view('member.profile', compact('user', 'favoriteBooks', 'myReviews', 'availableGenres'));
+        // Koleksi kandidat buku untuk modal picker 4 Buku Favorit
+        $userBookIds = $user->favoriteBooks()->pluck('books.id')
+            ->merge($user->likedBooks()->pluck('books.id'))
+            ->merge($user->readingShelves()->pluck('book_id'))
+            ->unique();
+
+        $candidateBooks = Book::whereIn('id', $userBookIds)->get();
+        if ($candidateBooks->count() < 12) {
+            $extra = Book::whereNotIn('id', $candidateBooks->pluck('id'))
+                ->take(16)
+                ->get();
+            $candidateBooks = $candidateBooks->merge($extra);
+        }
+
+        $candidatesData = $candidateBooks->map(function ($b) {
+            return [
+                'id' => $b->id,
+                'title' => $b->title,
+                'author' => $b->author,
+                'cover' => $b->cover ? asset('storage/' . $b->cover) : null,
+                'genre' => $b->genre,
+            ];
+        })->values();
+
+        $favoriteBookIds = $favoriteBooks->pluck('id')->values()->toArray();
+
+        return view('member.profile', compact('user', 'favoriteBooks', 'favoriteBookIds', 'candidatesData', 'myReviews', 'availableGenres'));
     }
 
     /**
@@ -76,7 +104,8 @@ class ProfileController extends Controller
         ]);
 
         $user->name = $request->name;
-        $user->bio = $request->bio;
+        // Sensor otomatis kata kasar pada Bio profil sebelum disimpan
+        $user->bio = ContentFilterService::filter($request->bio);
         $user->favorite_genres = $request->favorite_genres ?? [];
 
         // Upload Foto Profil Baru
@@ -100,6 +129,33 @@ class ProfileController extends Controller
         $user->save();
 
         return back()->with('success', 'Profil Anda berhasil diperbarui!');
+    }
+
+    /**
+     * Ubah Password Akun Member
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'password.required'         => 'Password baru wajib diisi.',
+            'password.min'              => 'Password baru minimal 8 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini yang Anda masukkan salah.']);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Password Anda berhasil diperbarui!');
     }
 
     /**

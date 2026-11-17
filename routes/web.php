@@ -53,6 +53,7 @@ Route::middleware(['auth'])->prefix('member')->as('member.')->group(function () 
     // Profil & Showcase 4 Buku Favorit
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.destroy');
     Route::post('/profile/favorites', [ProfileController::class, 'updateFavorites'])->name('favorites.update');
 
