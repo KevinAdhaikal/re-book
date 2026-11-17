@@ -77,25 +77,31 @@
       .book-cover-wrap { height: 220px; }
     }
 
-    /* Fix Pagination & Arrow di Bawah */
+    /* Clean Re:Book Unified Pagination */
+    .rebook-pagination,
     nav[role="navigation"] {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 24px;
+      padding: 12px 0;
       font-size: 0.85rem;
       color: var(--text-muted);
     }
-    nav[role="navigation"] svg {
-      width: 16px !important;
-      height: 16px !important;
-      max-width: 16px !important;
-      max-height: 16px !important;
-      display: inline-block;
-      vertical-align: middle;
+    .rebook-pagination .pagination-info {
+      color: var(--text-muted);
     }
+    .rebook-pagination .pagination-info strong {
+      color: var(--text-main);
+    }
+    .rebook-pagination .pagination-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rebook-pagination .page-link,
     nav[role="navigation"] a,
     nav[role="navigation"] span[aria-disabled],
     nav[role="navigation"] span[aria-current] {
@@ -107,25 +113,44 @@
       text-decoration: none !important;
       display: inline-flex !important;
       align-items: center !important;
+      justify-content: center !important;
+      min-width: 32px;
+      height: 32px;
       gap: 6px !important;
       font-size: 0.82rem !important;
       transition: all 0.15s ease !important;
     }
+    .rebook-pagination .page-link:hover:not(.disabled):not(.active),
     nav[role="navigation"] a:hover {
       background: #21262d !important;
       border-color: #58a6ff !important;
       color: #58a6ff !important;
     }
+    .rebook-pagination .page-link.active,
     nav[role="navigation"] span[aria-current] span,
     nav[role="navigation"] span[aria-current] {
       background: var(--member-accent) !important;
       border-color: var(--member-accent) !important;
       color: white !important;
       font-weight: 700 !important;
+      cursor: default;
     }
+    .rebook-pagination .page-link.disabled,
     nav[role="navigation"] span[aria-disabled] {
       opacity: 0.45 !important;
       cursor: not-allowed !important;
+    }
+    nav[role="navigation"] svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Sembunyikan blok duplikat mobile jika menggunakan template bawaan framework */
+    nav[role="navigation"] .sm\:hidden {
+      display: none !important;
     }
   </style>
   @stack('styles')
