@@ -47,6 +47,20 @@ class BookController extends Controller
 
         $books = $query->paginate(50)->withQueryString();
 
+        // Cari data member komunitas jika sedang dalam mode pencarian
+        $matchedUsers = null;
+        if (request()->filled('search')) {
+            $search = request('search');
+            $matchedUsers = \App\Models\User::where('role', 'member')
+                                            ->where(function ($q) use ($search) {
+                                                $q->where('name', 'like', "%{$search}%")
+                                                  ->orWhere('bio', 'like', "%{$search}%")
+                                                  ->orWhere('favorite_genres', 'like', "%{$search}%");
+                                            })
+                                            ->paginate(12, ['*'], 'users_page')
+                                            ->withQueryString();
+        }
+
         // 2. Ambil 6 buku paling populer untuk Showcase Trending ala Letterboxd
         $trendingBooks = Book::withAvg('reviews', 'rating')
                              ->withCount(['reviews', 'likedByUsers'])
@@ -62,7 +76,7 @@ class BookController extends Controller
                                 ->get();
 
         // 4. Kirim ke view landing
-        return view('landing', compact('books', 'popularReviews', 'trendingBooks'));
+        return view('landing', compact('books', 'popularReviews', 'trendingBooks', 'matchedUsers'));
     }
 
     // Detail Buku & Ulasannya
@@ -102,7 +116,7 @@ class BookController extends Controller
             });
         }
 
-        $totalMatches = (clone $query)->count();
+        $totalBookMatches = (clone $query)->count();
         $books = $query->orderBy('title', 'asc')
                        ->take(5)
                        ->get()
@@ -120,10 +134,39 @@ class BookController extends Controller
                            ];
                        });
 
+        // Cari juga member komunitas jika filter_type === 'all'
+        $users = [];
+        $totalUserMatches = 0;
+        if ($type === 'all') {
+            $userQuery = \App\Models\User::where('role', 'member')
+                                         ->where(function ($q) use ($search) {
+                                             $q->where('name', 'like', "%{$search}%")
+                                               ->orWhere('bio', 'like', "%{$search}%")
+                                               ->orWhere('favorite_genres', 'like', "%{$search}%");
+                                         });
+            $totalUserMatches = (clone $userQuery)->count();
+            $users = $userQuery->take(4)
+                               ->get()
+                               ->map(function ($u) {
+                                   return [
+                                       'id' => $u->id,
+                                       'name' => $u->name,
+                                       'avatar_url' => $u->avatarUrl(),
+                                       'bio' => $u->bio ? \Illuminate\Support\Str::limit($u->bio, 55) : 'Member Komunitas',
+                                       'shelved_count' => $u->readingShelves()->count(),
+                                       'reviews_count' => $u->reviews()->count(),
+                                       'url' => route('users.profile', $u->id),
+                                   ];
+                               });
+        }
+
         return response()->json([
             'success' => true,
             'books' => $books,
-            'total' => $totalMatches,
+            'books_total' => $totalBookMatches,
+            'users' => $users,
+            'users_total' => $totalUserMatches,
+            'total' => $totalBookMatches + $totalUserMatches,
             'query' => $search,
         ]);
     }

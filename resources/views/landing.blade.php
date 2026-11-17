@@ -253,52 +253,108 @@
       </div>
     </div>
 
-    {{-- Genre Filter Tabs --}}
-    @php
-      $genreList = ['Semua', 'Fiksi', 'Manga', 'Novel', 'Sastra', 'Filsafat', 'Self-Dev', 'Fantasi', 'Komik'];
-    @endphp
-    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 20px;">
-      @foreach($genreList as $g)
-        @php
-          $isGenreActive = ($g === 'Semua' && (!request('filter_type') || (request('filter_type') === 'all' && !request('search')))) || (request('filter_type') === 'genre' && strcasecmp(request('search'), $g) === 0);
-          $genreUrl = $g === 'Semua' ? url('/') : url('/?filter_type=genre&search=' . urlencode($g));
-        @endphp
-        <a href="{{ $genreUrl }}" class="filter-pill {{ $isGenreActive ? 'active' : '' }}">
-          {{ $g }}
-        </a>
-      @endforeach
-    </div>
-
-    {{-- Grid Buku --}}
-    <div class="book-grid">
+    {{-- Genre Filter Tabs (hanya jika tidak mencari spesifik) --}}
+    @if(!request()->filled('search'))
       @php
-        $userLikedIds = auth()->check() ? \Illuminate\Support\Facades\DB::table('book_likes')->where('user_id', auth()->id())->pluck('book_id')->toArray() : [];
+        $genreList = ['Semua', 'Fiksi', 'Manga', 'Novel', 'Sastra', 'Filsafat', 'Self-Dev', 'Fantasi', 'Komik'];
       @endphp
-
-      @forelse ($books as $b)
-        @php
-          $isLiked = in_array($b->id, $userLikedIds);
-        @endphp
-        <x-book-card :book="$b" :isLiked="$isLiked" />
-      @empty
-        <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
-          <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; color: #30363d; margin-bottom: 10px;"></i>
-          <h3 style="color: var(--text-main); font-size: 1rem; margin-bottom: 6px;">Buku Tidak Ditemukan</h3>
-          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
-            Tidak ada buku yang cocok dengan pencarian "{{ request('search') }}".
-          </p>
-          <a href="{{ url('/') }}" style="background: var(--member-accent); color: white; padding: 7px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-block;">
-            Kembali ke Semua Koleksi
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 20px;">
+        @foreach($genreList as $g)
+          @php
+            $isGenreActive = ($g === 'Semua' && (!request('filter_type') || (request('filter_type') === 'all' && !request('search')))) || (request('filter_type') === 'genre' && strcasecmp(request('search'), $g) === 0);
+            $genreUrl = $g === 'Semua' ? url('/') : url('/?filter_type=genre&search=' . urlencode($g));
+          @endphp
+          <a href="{{ $genreUrl }}" class="filter-pill {{ $isGenreActive ? 'active' : '' }}">
+            {{ $g }}
           </a>
-        </div>
-      @endforelse
-    </div>
-
-    {{-- Pagination Links --}}
-    @if ($books->hasPages())
-      <div style="margin-top: 24px; display: flex; justify-content: center;">
-        {{ $books->links() }}
+        @endforeach
       </div>
+    @else
+      {{-- Tab Hasil Pencarian Multi-Entity (Buku vs Member) --}}
+      @php
+        $activeSearchTab = request('tab', 'books');
+      @endphp
+      <div style="display: flex; gap: 10px; margin-bottom: 22px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <a href="{{ request()->fullUrlWithQuery(['tab' => 'books']) }}" class="filter-pill {{ $activeSearchTab === 'books' ? 'active' : '' }}" style="display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-book"></i> Buku ({{ $books->total() }})
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['tab' => 'users']) }}" class="filter-pill {{ $activeSearchTab === 'users' ? 'active' : '' }}" style="display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-users"></i> Member Komunitas ({{ $matchedUsers ? $matchedUsers->total() : 0 }})
+        </a>
+      </div>
+    @endif
+
+    @if(request()->filled('search') && request('tab') === 'users')
+      {{-- Grid Hasil Pencarian Member Komunitas --}}
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px;">
+        @forelse($matchedUsers ?? [] as $user)
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px; display: flex; gap: 14px; align-items: center; transition: border-color 0.15s ease;">
+            <a href="{{ route('users.profile', $user->id) }}" style="text-decoration: none;">
+              <x-user-avatar :user="$user" size="lg" />
+            </a>
+            <div style="flex: 1; min-width: 0;">
+              <h4 style="margin: 0 0 3px 0; font-size: 0.95rem; font-weight: 700;">
+                <a href="{{ route('users.profile', $user->id) }}" style="color: var(--text-main); text-decoration: none;">
+                  {{ $user->name }}
+                </a>
+              </h4>
+              <p style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ $user->bio ?: 'Member Komunitas Re:Book' }}
+              </p>
+              <div style="font-size: 0.72rem; color: #8b949e; display: flex; gap: 10px;">
+                <span><i class="fa-solid fa-book-bookmark"></i> {{ $user->readingShelves()->count() }} buku</span>
+                <span><i class="fa-solid fa-pen"></i> {{ $user->reviews()->count() }} ulasan</span>
+              </div>
+            </div>
+            <a href="{{ route('users.profile', $user->id) }}" style="background: #21262d; border: 1px solid var(--border-color); color: #58a6ff; font-size: 0.75rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;">
+              Profil
+            </a>
+          </div>
+        @empty
+          <div style="grid-column: 1 / -1; text-align: center; padding: 45px 20px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+            <i class="fa-solid fa-user-xmark" style="font-size: 2rem; color: #30363d; margin-bottom: 8px;"></i>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Tidak ada member ditemukan dengan kata kunci "{{ request('search') }}".</p>
+          </div>
+        @endforelse
+      </div>
+
+      @if($matchedUsers && $matchedUsers->hasPages())
+        <div style="margin-top: 20px; display: flex; justify-content: center;">
+          {{ $matchedUsers->links() }}
+        </div>
+      @endif
+    @else
+      {{-- Grid Buku --}}
+      <div class="book-grid">
+        @php
+          $userLikedIds = auth()->check() ? \Illuminate\Support\Facades\DB::table('book_likes')->where('user_id', auth()->id())->pluck('book_id')->toArray() : [];
+        @endphp
+
+        @forelse ($books as $b)
+          @php
+            $isLiked = in_array($b->id, $userLikedIds);
+          @endphp
+          <x-book-card :book="$b" :isLiked="$isLiked" />
+        @empty
+          <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; color: #30363d; margin-bottom: 10px;"></i>
+            <h3 style="color: var(--text-main); font-size: 1rem; margin-bottom: 6px;">Buku Tidak Ditemukan</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+              Tidak ada buku yang cocok dengan pencarian "{{ request('search') }}".
+            </p>
+            <a href="{{ url('/') }}" style="background: var(--member-accent); color: white; padding: 7px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-block;">
+              Kembali ke Semua Koleksi
+            </a>
+          </div>
+        @endforelse
+      </div>
+
+      {{-- Pagination Links --}}
+      @if ($books->hasPages())
+        <div style="margin-top: 24px; display: flex; justify-content: center;">
+          {{ $books->links() }}
+        </div>
+      @endif
     @endif
 
   </section>

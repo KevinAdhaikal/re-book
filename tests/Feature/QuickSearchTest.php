@@ -68,4 +68,32 @@ class QuickSearchTest extends TestCase
 
         $this->assertGreaterThan(0, $response->json('total'));
     }
+
+    public function test_quick_search_returns_matching_members()
+    {
+        $member = \App\Models\User::where('role', 'member')->first();
+        $this->assertNotNull($member);
+
+        $term = mb_substr($member->name, 0, 4);
+        $response = $this->getJson(route('books.quickSearch', ['search' => $term]));
+
+        $response->assertStatus(200)
+                 ->assertJson(['success' => true])
+                 ->assertJsonStructure([
+                     'success',
+                     'books',
+                     'users' => [
+                         '*' => [
+                             'id',
+                             'name',
+                             'avatar_url',
+                             'bio',
+                             'shelved_count',
+                             'reviews_count',
+                             'url',
+                         ]
+                     ],
+                     'total',
+                 ]);
+    }
 }
