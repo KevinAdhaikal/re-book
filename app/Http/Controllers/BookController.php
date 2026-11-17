@@ -35,19 +35,34 @@ class BookController extends Controller
             }
         }
 
-        // Urutkan A-Z berdasarkan Judul Buku
-        $books = $query->orderBy('title', 'asc')
-                       ->paginate(50)
-                       ->withQueryString();
+        // Urutkan berdasarkan parameter sort (default: title A-Z)
+        $sort = request('sort', 'title');
+        if ($sort === 'rating') {
+            $query->orderByDesc('reviews_avg_rating')->orderBy('title', 'asc');
+        } elseif ($sort === 'popular') {
+            $query->orderByDesc('liked_by_users_count')->orderBy('title', 'asc');
+        } else {
+            $query->orderBy('title', 'asc');
+        }
 
-        // 2. Ambil data ulasan populer + komentar
+        $books = $query->paginate(50)->withQueryString();
+
+        // 2. Ambil 6 buku paling populer untuk Showcase Trending ala Letterboxd
+        $trendingBooks = Book::withAvg('reviews', 'rating')
+                             ->withCount(['reviews', 'likedByUsers'])
+                             ->orderByDesc('liked_by_users_count')
+                             ->orderByDesc('reviews_avg_rating')
+                             ->take(6)
+                             ->get();
+
+        // 3. Ambil data ulasan populer + komentar
         $popularReviews = Review::with(['user', 'book', 'comments.user'])
                                 ->latest()
-                                ->take(5)
+                                ->take(6)
                                 ->get();
 
-        // 3. Kirim KEDUANYA ke view landing
-        return view('landing', compact('books', 'popularReviews'));
+        // 4. Kirim ke view landing
+        return view('landing', compact('books', 'popularReviews', 'trendingBooks'));
     }
 
     // Detail Buku & Ulasannya
