@@ -179,6 +179,36 @@ class AdminPanelRevampTest extends TestCase
         \App\Models\BadWord::where('word', strtolower($uniqueWord))->delete();
     }
 
+    public function test_admin_can_add_batch_bad_words_and_test_live_censor_endpoint()
+    {
+        $w1 = 'batch1_' . uniqid();
+        $w2 = 'batch2_' . uniqid();
+        $w3 = 'batch3_' . uniqid();
+
+        // 1. Batch insert separated by commas and newlines
+        $responseBatch = $this->actingAs($this->admin)->post(route('admin.words.store'), [
+            'words' => "  {$w1} ,  {$w2}\n{$w3}  ",
+        ]);
+        $responseBatch->assertSessionHas('success');
+
+        $this->assertDatabaseHas('bad_words', ['word' => strtolower($w1)]);
+        $this->assertDatabaseHas('bad_words', ['word' => strtolower($w2)]);
+        $this->assertDatabaseHas('bad_words', ['word' => strtolower($w3)]);
+
+        // 2. Test live sensor simulator endpoint
+        $responseTest = $this->actingAs($this->admin)->postJson(route('admin.words.test'), [
+            'text' => "Ini pengujian {$w1} dalam kalimat",
+        ]);
+        $responseTest->assertStatus(200);
+        $responseTest->assertJson([
+            'has_censorship' => true,
+        ]);
+        $this->assertStringContainsString('******', $responseTest->json('filtered'));
+
+        // Cleanup
+        \App\Models\BadWord::whereIn('word', [strtolower($w1), strtolower($w2), strtolower($w3)])->delete();
+    }
+
     public function test_book_cover_file_cleanup_on_delete()
     {
         \Illuminate\Support\Facades\Storage::fake('public');

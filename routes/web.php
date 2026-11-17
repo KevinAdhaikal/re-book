@@ -112,6 +112,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     // Filter Kata Kasar (Sensitivitas Teks)
     Route::get('/filter-words', [BadWordController::class, 'index'])->name('words.index');
     Route::post('/filter-words', [BadWordController::class, 'store'])->name('words.store');
+    Route::post('/filter-words/test', [BadWordController::class, 'test'])->name('words.test');
     Route::delete('/filter-words/{id}', [BadWordController::class, 'destroy'])->name('words.destroy');
 
     // 4. FITUR ADMIN: MODERASI ULASAN & EXPORT DATA
