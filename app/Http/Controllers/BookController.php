@@ -57,6 +57,62 @@ class BookController extends Controller
         return view('books.show', compact('book'));
     }
 
+    // [API/AJAX] Pencarian Cepat Live Dropdown Search
+    public function quickSearch(\Illuminate\Http\Request $request)
+    {
+        $search = trim($request->input('search', ''));
+        $type = $request->input('filter_type', 'all');
+
+        if (mb_strlen($search) < 2) {
+            return response()->json([
+                'success' => true,
+                'books' => [],
+                'total' => 0,
+            ]);
+        }
+
+        $query = Book::withAvg('reviews', 'rating')->withCount(['reviews', 'likedByUsers']);
+
+        if ($type === 'title') {
+            $query->where('title', 'like', "%{$search}%");
+        } elseif ($type === 'author') {
+            $query->where('author', 'like', "%{$search}%");
+        } elseif ($type === 'genre') {
+            $query->where('genre', 'like', "%{$search}%");
+        } else {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('author', 'like', "%{$search}%")
+                  ->orWhere('genre', 'like', "%{$search}%");
+            });
+        }
+
+        $totalMatches = (clone $query)->count();
+        $books = $query->orderBy('title', 'asc')
+                       ->take(5)
+                       ->get()
+                       ->map(function ($b) {
+                           return [
+                               'id' => $b->id,
+                               'title' => $b->title,
+                               'author' => $b->author,
+                               'genre' => $b->genre,
+                               'cover_url' => $b->cover ? asset('storage/' . $b->cover) : null,
+                               'rating' => round($b->reviews_avg_rating ?? 0, 1),
+                               'reviews_count' => $b->reviews_count ?? 0,
+                               'likes_count' => $b->liked_by_users_count ?? 0,
+                               'url' => route('books.show', $b->id),
+                           ];
+                       });
+
+        return response()->json([
+            'success' => true,
+            'books' => $books,
+            'total' => $totalMatches,
+            'query' => $search,
+        ]);
+    }
+
     // [ADMIN] Halaman Kelola Buku
     public function manage()
     {

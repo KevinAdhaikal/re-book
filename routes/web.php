@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ExportController;
 // ==========================================
 Route::get('/', [BookController::class, 'index'])->name('home');
 Route::get('/book/{id}', [BookController::class, 'show'])->name('books.show');
+Route::get('/books/search/quick', [BookController::class, 'quickSearch'])->name('books.quickSearch');
 
 // Profil Publik Member (Dapat Dilihat Pengguna Lain)
 Route::get('/user/{id}', [ProfileController::class, 'show'])->name('users.profile');
