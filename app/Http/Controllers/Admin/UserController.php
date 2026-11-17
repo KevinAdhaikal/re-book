@@ -65,7 +65,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($user->role === 'admin') {
+        if ($user->id === auth()->id() || $user->role === 'admin') {
             return back()->with('error', 'Akun Admin tidak bisa diblokir!');
         }
 

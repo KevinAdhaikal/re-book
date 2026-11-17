@@ -132,4 +132,73 @@ class AdminPanelRevampTest extends TestCase
         $resReviews->assertSee('sort=rating_desc', false);
         $resReviews->assertSee('fa-sort', false);
     }
+
+    public function test_admin_cannot_block_self_or_other_admin()
+    {
+        $response = $this->actingAs($this->admin)->patch(route('admin.users.toggle-block', $this->admin->id));
+        $response->assertSessionHas('error', 'Akun Admin tidak bisa diblokir!');
+    }
+
+    public function test_blocked_member_session_is_terminated_by_check_role_middleware()
+    {
+        $uniqueEmail = 'blocked_' . uniqid() . '@rebook.com';
+        $blockedMember = User::create([
+            'name' => 'Blocked Member Session Test',
+            'email' => $uniqueEmail,
+            'password' => bcrypt('password123'),
+            'role' => 'member',
+            'status' => 'Diblokir',
+        ]);
+
+        try {
+            $response = $this->actingAs($blockedMember)->get(route('member.profile'));
+            $response->assertRedirect(route('login'));
+            $response->assertSessionHasErrors(['email']);
+            $this->assertGuest();
+        } finally {
+            $blockedMember->delete();
+        }
+    }
+
+    public function test_bad_word_sanitization_and_unique_validation()
+    {
+        $uniqueWord = 'kasar_' . uniqid();
+
+        // Add a bad word
+        $response = $this->actingAs($this->admin)->post(route('admin.words.store'), [
+            'word' => $uniqueWord,
+        ]);
+        $response->assertSessionHas('success');
+
+        // Add same word with whitespace and mixed casing
+        $responseDuplicate = $this->actingAs($this->admin)->post(route('admin.words.store'), [
+            'word' => '  ' . strtoupper($uniqueWord) . '  ',
+        ]);
+        $responseDuplicate->assertSessionHasErrors(['word']);
+
+        \App\Models\BadWord::where('word', strtolower($uniqueWord))->delete();
+    }
+
+    public function test_book_cover_file_cleanup_on_delete()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $uploaded = \Illuminate\Http\UploadedFile::fake()->create('test_cover.jpg', 100, 'image/jpeg');
+        $path = $uploaded->store('covers', 'public');
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($path);
+
+        $book = Book::create([
+            'title' => 'Buku Hapus Cover Test',
+            'author' => 'Penulis Hapus',
+            'genre' => 'Fiksi',
+            'description' => 'Deskripsi hapus',
+            'cover' => $path,
+        ]);
+
+        $response = $this->actingAs($this->admin)->delete(route('admin.books.destroy', $book->id));
+        $response->assertSessionHas('success');
+
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($path);
+        $this->assertDatabaseMissing('books', ['id' => $book->id]);
+    }
 }

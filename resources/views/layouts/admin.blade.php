@@ -38,6 +38,57 @@
     .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
     .custom-table th, .custom-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
     .custom-table th { background: #21262d; color: var(--text-main); font-weight: 600; }
+
+    /* Fix Pagination & Arrow di Bawah Tabel */
+    nav[role="navigation"] {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    nav[role="navigation"] svg {
+      width: 16px !important;
+      height: 16px !important;
+      max-width: 16px !important;
+      max-height: 16px !important;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    nav[role="navigation"] a,
+    nav[role="navigation"] span[aria-disabled],
+    nav[role="navigation"] span[aria-current] {
+      padding: 6px 12px !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-main) !important;
+      border-radius: 6px !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      font-size: 0.82rem !important;
+      transition: all 0.15s ease !important;
+    }
+    nav[role="navigation"] a:hover {
+      background: #21262d !important;
+      border-color: #58a6ff !important;
+      color: #58a6ff !important;
+    }
+    nav[role="navigation"] span[aria-current] span,
+    nav[role="navigation"] span[aria-current] {
+      background: #238636 !important;
+      border-color: #238636 !important;
+      color: white !important;
+      font-weight: 700 !important;
+    }
+    nav[role="navigation"] span[aria-disabled] {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+    }
   </style>
 </head>
 <body>
@@ -54,10 +105,25 @@
         <li><a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"><i class="fa-solid fa-comments"></i> Moderasi Ulasan</a></li>
         <li><a href="{{ route('admin.words.index') }}" class="{{ request()->routeIs('admin.words.*') ? 'active' : '' }}"><i class="fa-solid fa-filter"></i> Filter Kata Kasar</a></li>
         <li><a href="{{ route('admin.exports.index') }}" class="{{ request()->routeIs('admin.exports.*') ? 'active' : '' }}"><i class="fa-solid fa-file-arrow-down"></i> Export Data</a></li>
+        <li style="margin: 15px 0 8px; border-top: 1px solid var(--border-color); padding-top: 12px;"></li>
+        <li><a href="{{ route('home') }}" target="_blank" style="color: #58a6ff;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Lihat Web Publik</a></li>
       </ul>
     </aside>
 
     <main class="admin-content">
+      @if($errors->any())
+        <div style="background: rgba(218, 54, 51, 0.18); border: 1px solid var(--admin-danger); color: #f85149; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px;">
+            <i class="fa-solid fa-circle-exclamation"></i> Terdapat kesalahan pada formulir:
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem;">
+            @foreach($errors->all() as $err)
+              <li>{{ $err }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
       @if(session('success'))
         <div style="background: rgba(35, 134, 54, 0.18); border: 1px solid var(--admin-accent); color: #3fb950; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-circle-check"></i> {{ session('success') }}

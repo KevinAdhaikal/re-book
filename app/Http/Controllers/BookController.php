@@ -238,7 +238,7 @@ class BookController extends Controller
             'author' => 'required|string|max:255',
             'genre' => 'required|string',
             'description' => 'required|string',
-            'cover' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'cover' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $coverPath = null;
@@ -297,8 +297,13 @@ class BookController extends Controller
     public function destroy($id)
     {
         $book = Book::findOrFail($id);
+
+        if ($book->cover && Storage::disk('public')->exists($book->cover)) {
+            Storage::disk('public')->delete($book->cover);
+        }
+
         $book->delete();
 
-        return back()->with('success', 'Buku berhasil dihapus!');
+        return back()->with('success', "Buku '{$book->title}' berhasil dihapus!");
     }
 }

@@ -16,6 +16,14 @@ class CheckRole
             abort(403, 'Kamu tidak memiliki akses ke halaman ini.');
         }
 
+        // Cek jika akun member diblokir oleh admin saat sedang aktif
+        if (Auth::user()->status === 'Diblokir') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->withErrors(['email' => 'Akun Anda telah diblokir oleh admin.']);
+        }
+
         return $next($request);
     }
 }
