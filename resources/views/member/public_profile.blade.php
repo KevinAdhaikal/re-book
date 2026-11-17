@@ -44,10 +44,35 @@
       <!-- Info Utama Member (Nama, Bio, Genre, Stats) -->
       <div style="flex: 1; min-width: 280px;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
-          <h1 style="color: white; font-size: 1.6rem; font-weight: 700; margin: 0;">{{ $member->name }}</h1>
-          <span style="background: rgba(31, 111, 235, 0.15); border: 1px solid var(--member-accent); color: #58a6ff; font-size: 0.78rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">
-            Member Komunitas
-          </span>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h1 style="color: white; font-size: 1.6rem; font-weight: 700; margin: 0;">{{ $member->name }}</h1>
+            <span style="background: rgba(31, 111, 235, 0.15); border: 1px solid var(--member-accent); color: #58a6ff; font-size: 0.78rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">
+              Member Komunitas
+            </span>
+          </div>
+
+          {{-- Tombol Follow / Unfollow --}}
+          @auth
+            @if(auth()->id() !== $member->id)
+              @php
+                $isFollowing = auth()->user()->isFollowing($member->id);
+              @endphp
+              <form action="{{ route('member.users.follow', $member->id) }}" method="POST" style="margin: 0;">
+                @csrf
+                <button type="submit"
+                        style="background: {{ $isFollowing ? '#21262d' : 'var(--member-accent)' }};
+                               border: 1px solid {{ $isFollowing ? 'var(--border-color)' : 'var(--member-accent)' }};
+                               color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                  <i class="fa-solid {{ $isFollowing ? 'fa-user-check' : 'fa-user-plus' }}"></i>
+                  <span>{{ $isFollowing ? 'Mengikuti' : 'Ikuti Member' }}</span>
+                </button>
+              </form>
+            @endif
+          @else
+            <a href="{{ route('login') }}" style="background: var(--member-accent); color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-user-plus"></i> Ikuti Member
+            </a>
+          @endauth
         </div>
 
         <!-- Bio Profil -->
@@ -75,13 +100,19 @@
           </div>
         </div>
 
-        <!-- Statistik Profil -->
-        <div style="display: flex; gap: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);">
+        <!-- Statistik Profil (Termasuk Followers & Following) -->
+        <div style="display: flex; gap: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
           <div>
-            <strong style="color: white; font-size: 1rem;">{{ $reviewsCount }}</strong> Ulasan Ditulis
+            <strong style="color: white; font-size: 1rem;">{{ $member->followers()->count() }}</strong> Pengikut
           </div>
           <div>
-            <strong style="color: white; font-size: 1rem;">{{ $favoriteBooks->count() }}</strong> Buku Favorit Ditampilkan
+            <strong style="color: white; font-size: 1rem;">{{ $member->following()->count() }}</strong> Mengikuti
+          </div>
+          <div>
+            <strong style="color: white; font-size: 1rem;">{{ $reviewsCount }}</strong> Ulasan
+          </div>
+          <div>
+            <strong style="color: white; font-size: 1rem;">{{ $member->readingShelves()->count() }}</strong> Buku di Rak
           </div>
           <div>
             Bergabung sejak <strong style="color: white;">{{ $member->created_at ? $member->created_at->format('M Y') : '-' }}</strong>

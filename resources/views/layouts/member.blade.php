@@ -65,6 +65,11 @@
           </a>
         </li>
         <li>
+          <a href="{{ route('member.shelf.index') }}" class="{{ request()->routeIs('member.shelf.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-bookmark" style="color: #58a6ff;"></i>Rak Bacaan
+          </a>
+        </li>
+        <li>
           <a href="{{ route('member.reviews.index') }}" class="{{ request()->routeIs('member.reviews.*') ? 'active' : '' }}">
             <i class="fa-solid fa-pen-to-square"></i>Ulasan Saya
           </a>

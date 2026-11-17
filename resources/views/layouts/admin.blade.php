@@ -42,7 +42,9 @@
         <li><a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i> Overview</a></li>
         <li><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Kelola Member</a></li>
         <li><a href="{{ route('admin.books.manage') }}" class="{{ request()->routeIs('admin.books.*') ? 'active' : '' }}"><i class="fa-solid fa-book"></i> Kelola Buku</a></li>
+        <li><a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"><i class="fa-solid fa-comments"></i> Moderasi Ulasan</a></li>
         <li><a href="{{ route('admin.words.index') }}" class="{{ request()->routeIs('admin.words.*') ? 'active' : '' }}"><i class="fa-solid fa-filter"></i> Filter Kata Kasar</a></li>
+        <li><a href="{{ route('admin.exports.index') }}" class="{{ request()->routeIs('admin.exports.*') ? 'active' : '' }}"><i class="fa-solid fa-file-arrow-down"></i> Export Data</a></li>
       </ul>
     </aside>
 

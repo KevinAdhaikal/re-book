@@ -52,6 +52,32 @@
             <i class="{{ $isFavorited ? 'fa-solid' : 'fa-regular' }} fa-star"></i> {{ $isFavorited ? 'Favorit Saya' : 'Tambah ke Favorit' }}
           </button>
         </form>
+
+        {{-- Tombol Rak Bacaan (Want to Read / Currently Reading / Read) --}}
+        @php
+          $shelfStatus = auth()->user()->shelfStatusFor($book->id);
+        @endphp
+        <div style="position: relative; display: inline-block;">
+          <form action="{{ route('member.shelf.update', $book->id) }}" method="POST" style="margin: 0; display: flex; align-items: center; gap: 6px;">
+            @csrf
+            <select name="status" onchange="if(this.value==='remove'){ document.getElementById('remove-shelf-form-{{ $book->id }}').submit(); } else { this.form.submit(); }"
+                    style="background: {{ $shelfStatus ? 'rgba(88, 166, 255, 0.18)' : '#21262d' }}; border: 1px solid {{ $shelfStatus ? '#58a6ff' : 'var(--border-color)' }}; color: {{ $shelfStatus ? '#58a6ff' : 'var(--text-main)' }}; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none;">
+              <option value="" disabled {{ !$shelfStatus ? 'selected' : '' }}>🔖 + Masukkan Rak</option>
+              <option value="want_to_read" {{ $shelfStatus === 'want_to_read' ? 'selected' : '' }}>⏳ Ingin Dibaca</option>
+              <option value="currently_reading" {{ $shelfStatus === 'currently_reading' ? 'selected' : '' }}>📖 Sedang Dibaca</option>
+              <option value="read" {{ $shelfStatus === 'read' ? 'selected' : '' }}>✅ Selesai Dibaca</option>
+              @if($shelfStatus)
+                <option value="remove" style="color: var(--admin-danger);">❌ Hapus dari Rak</option>
+              @endif
+            </select>
+          </form>
+          @if($shelfStatus)
+            <form id="remove-shelf-form-{{ $book->id }}" action="{{ route('member.shelf.destroy', $book->id) }}" method="POST" style="display: none;">
+              @csrf
+              @method('DELETE')
+            </form>
+          @endif
+        </div>
       </div>
     @endauth
   </div>
@@ -149,9 +175,35 @@
     </div>
 
     {{-- Isi Ulasan --}}
-    <p style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; background: rgba(255, 255, 255, 0.02); padding: 12px 15px; border-radius: 6px; border-left: 3px solid var(--member-accent);">
+    <p style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 15px; border-radius: 6px; border-left: 3px solid var(--member-accent);">
       "{{ $r->content }}"
     </p>
+
+    {{-- Like Ulasan / Membantu --}}
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 0.85rem;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        @php
+          $reviewLiked = auth()->check() ? auth()->user()->hasLikedReview($r->id) : false;
+          $reviewLikesCount = $r->likedByUsers()->count();
+        @endphp
+        @auth
+          <form action="{{ route('member.reviews.like', $r->id) }}" method="POST" style="margin: 0;">
+            @csrf
+            <button type="submit" style="background: {{ $reviewLiked ? 'rgba(88, 166, 255, 0.15)' : '#21262d' }}; border: 1px solid {{ $reviewLiked ? '#58a6ff' : 'var(--border-color)' }}; color: {{ $reviewLiked ? '#58a6ff' : 'var(--text-muted)' }}; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="{{ $reviewLiked ? 'fa-solid' : 'fa-regular' }} fa-thumbs-up"></i>
+              <span>{{ $reviewLiked ? 'Membantu' : 'Ulasan Membantu?' }}</span>
+              <span style="background: rgba(255,255,255,0.12); padding: 1px 6px; border-radius: 10px; font-size: 0.75rem;">{{ $reviewLikesCount }}</span>
+            </button>
+          </form>
+        @else
+          <a href="{{ route('login') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-regular fa-thumbs-up"></i>
+            <span>Membantu</span>
+            <span style="background: rgba(255,255,255,0.12); padding: 1px 6px; border-radius: 10px; font-size: 0.75rem;">{{ $reviewLikesCount }}</span>
+          </a>
+        @endauth
+      </div>
+    </div>
 
     {{-- Komentar Balasan pada Ulasan --}}
     <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">

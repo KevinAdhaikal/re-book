@@ -90,6 +90,44 @@ class User extends Authenticatable
         return $this->favoriteBooks()->where('book_id', $bookId)->exists();
     }
 
+    // Relasi Rak Bacaan Member (Want to Read, Currently Reading, Read)
+    public function readingShelves()
+    {
+        return $this->hasMany(ReadingShelf::class);
+    }
+
+    public function shelfStatusFor($bookId): ?string
+    {
+        return $this->readingShelves()->where('book_id', $bookId)->value('status');
+    }
+
+    // Relasi Like pada Ulasan Member Lain
+    public function reviewLikes()
+    {
+        return $this->belongsToMany(Review::class, 'review_likes')->withTimestamps();
+    }
+
+    public function hasLikedReview($reviewId): bool
+    {
+        return $this->reviewLikes()->where('review_id', $reviewId)->exists();
+    }
+
+    // Sistem Follow Antar Member
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'following_id', 'follower_id')->withTimestamps();
+    }
+
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'follower_id', 'following_id')->withTimestamps();
+    }
+
+    public function isFollowing($userId): bool
+    {
+        return $this->following()->where('following_id', $userId)->exists();
+    }
+
     public function avatarUrl(): ?string
     {
         if (!$this->avatar) {

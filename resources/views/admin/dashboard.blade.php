@@ -30,6 +30,19 @@
 
 </div>
 
+<!-- Pintasan Aksi Cepat Admin -->
+<div style="display: flex; gap: 12px; margin-bottom: 30px; flex-wrap: wrap;">
+  <a href="{{ route('admin.reviews.index') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 9px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-comments" style="color: #58a6ff;"></i> Moderasi Seluruh Ulasan
+  </a>
+  <a href="{{ route('admin.exports.index') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 9px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-file-arrow-down" style="color: #3fb950;"></i> Unduh Data / Export CSV
+  </a>
+  <a href="{{ route('admin.books.manage') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 9px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-book" style="color: var(--member-accent);"></i> Kelola Katalog Buku
+  </a>
+</div>
+
 <!-- Tabel Ulasan Terbaru -->
 <h3 style="margin-bottom: 15px;">💬 Ulasan Terbaru dari Komunitas</h3>
 <table class="custom-table">

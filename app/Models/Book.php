@@ -34,4 +34,15 @@ class Book extends Model
     {
         return $this->belongsToMany(User::class, 'favorite_books')->withTimestamps();
     }
+
+    // Relasi ke Rak Bacaan Member
+    public function readingShelves()
+    {
+        return $this->hasMany(ReadingShelf::class);
+    }
+
+    public function shelvedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'reading_shelves')->withPivot('status')->withTimestamps();
+    }
 }

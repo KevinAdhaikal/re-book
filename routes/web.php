@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Member\ProfileController;
 use App\Http\Controllers\Member\LikeController;
 use App\Http\Controllers\Member\FavController;
+use App\Http\Controllers\Member\ShelfController;
+use App\Http\Controllers\Member\SocialController;
+use App\Http\Controllers\Admin\ReviewModerationController;
+use App\Http\Controllers\Admin\ExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +73,18 @@ Route::middleware(['auth'])->prefix('member')->as('member.')->group(function () 
     // Fitur Komentar (Tambah & Hapus Komentar Sendiri)
     Route::post('/reviews/{id}/comments', [ReviewController::class, 'storeComment'])->name('comments.store');
     Route::delete('/comments/{id}', [ReviewController::class, 'destroyComment'])->name('comments.destroy');
+
+    // 3. FITUR INTERAKSI SOSIAL & RAK BACAAN
+    // Rak Bacaan (Want to Read, Currently Reading, Read)
+    Route::get('/shelf', [ShelfController::class, 'index'])->name('shelf.index');
+    Route::post('/shelf/{bookId}', [ShelfController::class, 'update'])->name('shelf.update');
+    Route::delete('/shelf/{bookId}', [ShelfController::class, 'destroy'])->name('shelf.destroy');
+
+    // Reaksi / Like pada Ulasan Member
+    Route::post('/reviews/{id}/like', [SocialController::class, 'toggleReviewLike'])->name('reviews.like');
+
+    // Sistem Follow Antar Member
+    Route::post('/users/{id}/follow', [SocialController::class, 'toggleFollow'])->name('users.follow');
 });
 
 
@@ -93,4 +109,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/filter-words', [BadWordController::class, 'index'])->name('words.index');
     Route::post('/filter-words', [BadWordController::class, 'store'])->name('words.store');
     Route::delete('/filter-words/{id}', [BadWordController::class, 'destroy'])->name('words.destroy');
+
+    // 4. FITUR ADMIN: MODERASI ULASAN & EXPORT DATA
+    // Moderasi Ulasan Global
+    Route::get('/reviews', [ReviewModerationController::class, 'index'])->name('reviews.index');
+    Route::delete('/reviews/{id}', [ReviewModerationController::class, 'destroy'])->name('reviews.destroy');
+
+    // Export Data (CSV)
+    Route::get('/exports', [ExportController::class, 'index'])->name('exports.index');
+    Route::get('/exports/books', [ExportController::class, 'exportBooks'])->name('exports.books');
+    Route::get('/exports/users', [ExportController::class, 'exportUsers'])->name('exports.users');
+    Route::get('/exports/reviews', [ExportController::class, 'exportReviews'])->name('exports.reviews');
 });

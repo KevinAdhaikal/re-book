@@ -33,4 +33,18 @@ class Review extends Model
     {
         return $this->hasMany(Comment::class);
     }
+
+    // Relasi Member yang menyukai ulasan ini
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'review_likes')->withTimestamps();
+    }
+
+    public function isLikedBy(?User $user = null): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        return $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
 }
