@@ -8,10 +8,27 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $members = User::where('role', 'member')->latest()->get();
-        return view('admin.users.index', compact('members'));
+        $search = trim($request->input('search', ''));
+        $status = $request->input('status', 'all');
+
+        $query = User::where('role', 'member')->withCount(['reviews', 'readingShelves']);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status === 'Aktif' || $status === 'Diblokir') {
+            $query->where('status', $status);
+        }
+
+        $members = $query->latest()->paginate(15)->withQueryString();
+
+        return view('admin.users.index', compact('members', 'search', 'status'));
     }
 
     // Fitur Utama: Toggle Blokir / Aktifkan Member

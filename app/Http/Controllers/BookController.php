@@ -172,13 +172,31 @@ class BookController extends Controller
     }
 
     // [ADMIN] Halaman Kelola Buku
-    public function manage()
+    public function manage(Request $request)
     {
-        $books = Book::withAvg('reviews', 'rating')
-                      ->orderBy('title', 'asc')
-                      ->paginate(10)
+        $search = trim($request->input('search', ''));
+        $genre = $request->input('genre', 'all');
+
+        $query = Book::withAvg('reviews', 'rating')->withCount(['reviews', 'likedByUsers']);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('author', 'like', "%{$search}%");
+            });
+        }
+
+        if ($genre !== 'all' && !empty($genre)) {
+            $query->where('genre', $genre);
+        }
+
+        $books = $query->orderBy('title', 'asc')
+                      ->paginate(12)
                       ->withQueryString();
-        return view('admin.books.index', compact('books'));
+
+        $genres = Book::select('genre')->distinct()->pluck('genre')->filter()->values();
+
+        return view('admin.books.index', compact('books', 'search', 'genre', 'genres'));
     }
 
     // [ADMIN] Simpan Buku Baru

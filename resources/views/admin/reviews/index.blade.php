@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Moderasi Ulasan - Admin Re:Book')
+
 @section('admin_content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
   <div>
