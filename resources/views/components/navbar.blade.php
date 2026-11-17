@@ -1,7 +1,7 @@
 <header style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; position: sticky; top: 0; z-index: 1000;">
   <a href="{{ route('home') }}" style="background-color: var(--member-accent); color: #fff; font-weight: 800; font-size: 1.1rem; padding: 4px 10px; border-radius: 4px; text-decoration: none;">Re:Book</a>
   
-  <form id="navbar-search-form" action="{{ request()->routeIs('member.likes.*') ? route('member.likes.index') : url('/') }}" method="GET" style="display: flex; align-items: center; gap: 8px; position: relative;">
+  <form id="navbar-search-form" action="{{ request()->routeIs('member.likes.*') ? route('member.likes.index') : route('search') }}" method="GET" style="display: flex; align-items: center; gap: 8px; position: relative;">
     <!-- Dropdown Category Filter -->
     <select name="filter_type" id="navbar-filter-type" style="padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; font-size: 0.9rem; cursor: pointer;">
       <option value="all" {{ request('filter_type') == 'all' ? 'selected' : '' }}>Semua</option>
@@ -12,7 +12,7 @@
 
     <!-- Input Keyword Pencarian & Live Search Dropdown -->
     <div style="position: relative; display: flex; align-items: center;">
-      <input type="text" name="search" id="navbar-search-input" value="{{ request('search') }}" autocomplete="off" placeholder="Cari judul, penulis, atau member..." style="padding: 8px 75px 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; width: 300px; font-size: 0.9rem; transition: border-color 0.2s;">
+      <input type="text" name="q" id="navbar-search-input" value="{{ request('q', request('search')) }}" autocomplete="off" placeholder="Cari judul, penulis, atau member..." style="padding: 8px 75px 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; width: 300px; font-size: 0.9rem; transition: border-color 0.2s;">
       
       <span id="navbar-shortcut-badge" style="position: absolute; right: 32px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; padding: 2px 5px; border-radius: 4px; pointer-events: none; font-family: monospace;">Ctrl K</span>
 
@@ -427,7 +427,7 @@
     if (seeAllBtn) {
       seeAllBtn.addEventListener('click', function() {
         saveRecentSearch(query);
-        window.location.href = `/?search=${encodeURIComponent(query)}#katalog-buku`;
+        window.location.href = `/search?q=${encodeURIComponent(query)}`;
       });
     }
 
@@ -512,7 +512,7 @@
         const q = paletteInput.value.trim();
         if (q) {
           saveRecentSearch(q);
-          window.location.href = `/?search=${encodeURIComponent(q)}#katalog-buku`;
+          window.location.href = `/search?q=${encodeURIComponent(q)}`;
         }
       }
       return;
@@ -534,7 +534,7 @@
         const q = paletteInput.value.trim();
         if (q) {
           saveRecentSearch(q);
-          window.location.href = `/?search=${encodeURIComponent(q)}#katalog-buku`;
+          window.location.href = `/search?q=${encodeURIComponent(q)}`;
         }
       }
     }

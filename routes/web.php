@@ -12,6 +12,7 @@ use App\Http\Controllers\Member\LikeController;
 use App\Http\Controllers\Member\FavController;
 use App\Http\Controllers\Member\ShelfController;
 use App\Http\Controllers\Member\SocialController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Admin\ReviewModerationController;
 use App\Http\Controllers\Admin\ExportController;
 
@@ -25,6 +26,7 @@ use App\Http\Controllers\Admin\ExportController;
 // 1. PUBLIC / GUEST ROUTES (IMDb Style Landing)
 // ==========================================
 Route::get('/', [BookController::class, 'index'])->name('home');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/book/{id}', [BookController::class, 'show'])->name('books.show');
 Route::get('/books/search/quick', [BookController::class, 'quickSearch'])->name('books.quickSearch');
 
