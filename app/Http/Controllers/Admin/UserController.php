@@ -12,6 +12,7 @@ class UserController extends Controller
     {
         $search = trim($request->input('search', ''));
         $status = $request->input('status', 'all');
+        $sort = $request->input('sort', 'newest');
 
         $query = User::where('role', 'member')->withCount(['reviews', 'readingShelves']);
 
@@ -26,9 +27,25 @@ class UserController extends Controller
             $query->where('status', $status);
         }
 
-        $members = $query->latest()->paginate(15)->withQueryString();
+        // Pengurutan (Sorting)
+        if ($sort === 'oldest') {
+            $query->oldest('id');
+        } elseif ($sort === 'name_asc') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sort === 'name_desc') {
+            $query->orderBy('name', 'desc');
+        } elseif ($sort === 'reviews') {
+            $query->orderByDesc('reviews_count')->orderBy('name', 'asc');
+        } elseif ($sort === 'shelves') {
+            $query->orderByDesc('reading_shelves_count')->orderBy('name', 'asc');
+        } else {
+            // Default: Terbaru Mendaftar
+            $query->latest('id');
+        }
 
-        return view('admin.users.index', compact('members', 'search', 'status'));
+        $members = $query->paginate(15)->withQueryString();
+
+        return view('admin.users.index', compact('members', 'search', 'status', 'sort'));
     }
 
     // Fitur Utama: Toggle Blokir / Aktifkan Member

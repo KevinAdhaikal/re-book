@@ -28,7 +28,7 @@
 
     {{-- Filter Buku --}}
     <div style="min-width: 180px;">
-      <select name="book_id" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.85rem; outline: none;">
+      <select name="book_id" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.85rem; outline: none; cursor: pointer;">
         <option value="">Semua Buku</option>
         @foreach($books as $book)
           <option value="{{ $book->id }}" {{ request('book_id') == $book->id ? 'selected' : '' }}>
@@ -40,7 +40,7 @@
 
     {{-- Filter Rating --}}
     <div style="min-width: 140px;">
-      <select name="rating" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.85rem; outline: none;">
+      <select name="rating" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.85rem; outline: none; cursor: pointer;">
         <option value="">Semua Rating</option>
         <option value="5" {{ request('rating') == '5' ? 'selected' : '' }}>⭐ 5 Bintang</option>
         <option value="4" {{ request('rating') == '4' ? 'selected' : '' }}>⭐ 4 Bintang</option>
@@ -50,11 +50,22 @@
       </select>
     </div>
 
+    {{-- Sort By --}}
+    <div style="min-width: 160px;">
+      <select name="sort" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.85rem; outline: none; cursor: pointer;">
+        <option value="newest" {{ ($sort ?? request('sort')) === 'newest' ? 'selected' : '' }}>Terbaru</option>
+        <option value="oldest" {{ ($sort ?? request('sort')) === 'oldest' ? 'selected' : '' }}>Terlama</option>
+        <option value="rating_desc" {{ ($sort ?? request('sort')) === 'rating_desc' ? 'selected' : '' }}>Rating Tertinggi</option>
+        <option value="rating_asc" {{ ($sort ?? request('sort')) === 'rating_asc' ? 'selected' : '' }}>Rating Terendah</option>
+        <option value="likes" {{ ($sort ?? request('sort')) === 'likes' ? 'selected' : '' }}>Paling Banyak Suka</option>
+      </select>
+    </div>
+
     <button type="submit" style="background: var(--admin-accent); color: white; padding: 8px 16px; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
       <i class="fa-solid fa-filter"></i> Terapkan
     </button>
 
-    @if(request()->anyFilled(['search', 'book_id', 'rating']))
+    @if(request()->anyFilled(['search', 'book_id', 'rating', 'sort']) && (request('book_id') || request('rating') || request('search') || (request('sort') && request('sort') !== 'newest')))
       <a href="{{ route('admin.reviews.index') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
         Reset
       </a>

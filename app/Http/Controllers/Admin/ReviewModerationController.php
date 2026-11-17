@@ -41,10 +41,25 @@ class ReviewModerationController extends Controller
             });
         }
 
-        $reviews = $query->latest()->paginate(15)->withQueryString();
+        // Pengurutan (Sorting)
+        $sort = $request->input('sort', 'newest');
+        if ($sort === 'oldest') {
+            $query->oldest('id');
+        } elseif ($sort === 'rating_desc') {
+            $query->orderByDesc('rating')->latest('id');
+        } elseif ($sort === 'rating_asc') {
+            $query->orderBy('rating', 'asc')->latest('id');
+        } elseif ($sort === 'likes') {
+            $query->orderByDesc('liked_by_users_count')->latest('id');
+        } else {
+            // Default: Terbaru
+            $query->latest('id');
+        }
+
+        $reviews = $query->paginate(15)->withQueryString();
         $books = Book::orderBy('title', 'asc')->get();
 
-        return view('admin.reviews.index', compact('reviews', 'books'));
+        return view('admin.reviews.index', compact('reviews', 'books', 'sort'));
     }
 
     /**

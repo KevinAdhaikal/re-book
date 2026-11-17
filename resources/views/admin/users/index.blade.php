@@ -28,10 +28,22 @@
 
     {{-- Filter Status --}}
     <div style="min-width: 160px;">
-      <select name="status" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
+      <select name="status" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
         <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>Semua Status</option>
         <option value="Aktif" {{ request('status') === 'Aktif' ? 'selected' : '' }}>Aktif</option>
         <option value="Diblokir" {{ request('status') === 'Diblokir' ? 'selected' : '' }}>Diblokir</option>
+      </select>
+    </div>
+
+    {{-- Sort By --}}
+    <div style="min-width: 170px;">
+      <select name="sort" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
+        <option value="newest" {{ ($sort ?? request('sort')) === 'newest' ? 'selected' : '' }}>Terbaru Mendaftar</option>
+        <option value="oldest" {{ ($sort ?? request('sort')) === 'oldest' ? 'selected' : '' }}>Terlama Mendaftar</option>
+        <option value="name_asc" {{ ($sort ?? request('sort')) === 'name_asc' ? 'selected' : '' }}>Nama (A-Z)</option>
+        <option value="name_desc" {{ ($sort ?? request('sort')) === 'name_desc' ? 'selected' : '' }}>Nama (Z-A)</option>
+        <option value="reviews" {{ ($sort ?? request('sort')) === 'reviews' ? 'selected' : '' }}>Ulasan Terbanyak</option>
+        <option value="shelves" {{ ($sort ?? request('sort')) === 'shelves' ? 'selected' : '' }}>Buku di Rak Terbanyak</option>
       </select>
     </div>
 
@@ -39,7 +51,7 @@
       <i class="fa-solid fa-filter"></i> Saring
     </button>
 
-    @if(request()->anyFilled(['search', 'status']) && (request('status') !== 'all' || request('search') !== ''))
+    @if(request()->anyFilled(['search', 'status', 'sort']) && (request('status') !== 'all' || request('search') !== '' || (request('sort') && request('sort') !== 'newest')))
       <a href="{{ route('admin.users.index') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
         Reset
       </a>

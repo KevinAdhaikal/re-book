@@ -33,7 +33,7 @@
 
     {{-- Filter Genre --}}
     <div style="min-width: 160px;">
-      <select name="genre" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
+      <select name="genre" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
         <option value="all" {{ request('genre') === 'all' || !request('genre') ? 'selected' : '' }}>Semua Genre</option>
         @foreach($genres as $g)
           <option value="{{ $g }}" {{ request('genre') === $g ? 'selected' : '' }}>{{ $g }}</option>
@@ -41,11 +41,24 @@
       </select>
     </div>
 
+    {{-- Sort By --}}
+    <div style="min-width: 170px;">
+      <select name="sort" onchange="this.form.submit()" style="width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.88rem; outline: none; cursor: pointer;">
+        <option value="title_asc" {{ ($sort ?? request('sort')) === 'title_asc' ? 'selected' : '' }}>Judul (A-Z)</option>
+        <option value="title_desc" {{ ($sort ?? request('sort')) === 'title_desc' ? 'selected' : '' }}>Judul (Z-A)</option>
+        <option value="rating_desc" {{ ($sort ?? request('sort')) === 'rating_desc' ? 'selected' : '' }}>Rating Tertinggi</option>
+        <option value="rating_asc" {{ ($sort ?? request('sort')) === 'rating_asc' ? 'selected' : '' }}>Rating Terendah</option>
+        <option value="popular" {{ ($sort ?? request('sort')) === 'popular' ? 'selected' : '' }}>Paling Banyak Suka</option>
+        <option value="reviews" {{ ($sort ?? request('sort')) === 'reviews' ? 'selected' : '' }}>Ulasan Terbanyak</option>
+        <option value="newest" {{ ($sort ?? request('sort')) === 'newest' ? 'selected' : '' }}>Terbaru Ditambahkan</option>
+      </select>
+    </div>
+
     <button type="submit" style="background: var(--admin-accent); color: white; padding: 8px 16px; border-radius: 6px; border: none; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
       <i class="fa-solid fa-filter"></i> Saring
     </button>
 
-    @if(request()->anyFilled(['search', 'genre']) && (request('genre') !== 'all' || request('search') !== ''))
+    @if(request()->anyFilled(['search', 'genre', 'sort']) && (request('genre') !== 'all' || request('search') !== '' || (request('sort') && request('sort') !== 'title_asc')))
       <a href="{{ route('admin.books.manage') }}" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
         Reset
       </a>

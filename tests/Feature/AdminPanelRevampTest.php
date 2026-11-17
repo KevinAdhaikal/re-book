@@ -84,4 +84,31 @@ class AdminPanelRevampTest extends TestCase
         $response = $this->actingAs($this->member)->get(route('admin.dashboard'));
         $response->assertStatus(403);
     }
+
+    public function test_admin_books_manage_sorting_options()
+    {
+        foreach (['title_asc', 'title_desc', 'rating_desc', 'rating_asc', 'popular', 'reviews', 'newest'] as $sort) {
+            $response = $this->actingAs($this->admin)->get(route('admin.books.manage', ['sort' => $sort]));
+            $response->assertStatus(200);
+            $response->assertSee('name="sort"', false);
+        }
+    }
+
+    public function test_admin_users_sorting_options()
+    {
+        foreach (['newest', 'oldest', 'name_asc', 'name_desc', 'reviews', 'shelves'] as $sort) {
+            $response = $this->actingAs($this->admin)->get(route('admin.users.index', ['sort' => $sort]));
+            $response->assertStatus(200);
+            $response->assertSee('name="sort"', false);
+        }
+    }
+
+    public function test_admin_reviews_moderation_sorting_options()
+    {
+        foreach (['newest', 'oldest', 'rating_desc', 'rating_asc', 'likes'] as $sort) {
+            $response = $this->actingAs($this->admin)->get(route('admin.reviews.index', ['sort' => $sort]));
+            $response->assertStatus(200);
+            $response->assertSee('name="sort"', false);
+        }
+    }
 }

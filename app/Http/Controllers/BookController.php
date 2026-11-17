@@ -176,6 +176,7 @@ class BookController extends Controller
     {
         $search = trim($request->input('search', ''));
         $genre = $request->input('genre', 'all');
+        $sort = $request->input('sort', 'title_asc');
 
         $query = Book::withAvg('reviews', 'rating')->withCount(['reviews', 'likedByUsers']);
 
@@ -190,13 +191,29 @@ class BookController extends Controller
             $query->where('genre', $genre);
         }
 
-        $books = $query->orderBy('title', 'asc')
-                      ->paginate(12)
-                      ->withQueryString();
+        // Pengurutan (Sorting)
+        if ($sort === 'title_desc') {
+            $query->orderBy('title', 'desc');
+        } elseif ($sort === 'rating_desc') {
+            $query->orderByDesc('reviews_avg_rating')->orderBy('title', 'asc');
+        } elseif ($sort === 'rating_asc') {
+            $query->orderBy('reviews_avg_rating', 'asc')->orderBy('title', 'asc');
+        } elseif ($sort === 'popular') {
+            $query->orderByDesc('liked_by_users_count')->orderByDesc('reviews_avg_rating');
+        } elseif ($sort === 'reviews') {
+            $query->orderByDesc('reviews_count')->orderBy('title', 'asc');
+        } elseif ($sort === 'newest') {
+            $query->latest('id');
+        } else {
+            // Default: Judul A-Z
+            $query->orderBy('title', 'asc');
+        }
+
+        $books = $query->paginate(12)->withQueryString();
 
         $genres = Book::select('genre')->distinct()->pluck('genre')->filter()->values();
 
-        return view('admin.books.index', compact('books', 'search', 'genre', 'genres'));
+        return view('admin.books.index', compact('books', 'search', 'genre', 'genres', 'sort'));
     }
 
     // [ADMIN] Simpan Buku Baru
