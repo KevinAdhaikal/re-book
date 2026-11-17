@@ -18,6 +18,9 @@ class ContentFilterService
         'ular',
         'setan',
         'iblis',
+        'asu',
+        'kunyuk',
+        'kirik',
     ];
 
     /**

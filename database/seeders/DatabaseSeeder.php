@@ -134,8 +134,16 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 4. Sample Kata Kasar Terblokir
-        $badWords = ['kasar', 'toxic', 'anjing', 'bodoh'];
+        // 4. Kamus Kata Kasar Terblokir Lengkap
+        $badWords = [
+            'bangsat', 'bajingan', 'keparat', 'brengsek', 'kampret',
+            'kontol', 'memek', 'pantek', 'itil', 'peler', 'jembut', 'ngentot',
+            'bispak', 'pecun', 'perek', 'lonte', 'jablay', 'pukimak', 'kimak',
+            'tai', 'taik', 'bangke', 'bacot', 'kasar', 'toxic',
+            'jancuk', 'jancok', 'cok', 'cuk', 'asu', 'kirik', 'dancok',
+            'bodoh', 'goblok', 'tolol', 'idiot', 'bego', 'bloon', 'dungu',
+            'anjing', 'babi', 'monyet', 'kunyuk', 'buaya', 'ular', 'setan', 'iblis',
+        ];
         foreach ($badWords as $w) {
             BadWord::firstOrCreate(['word' => $w]);
         }
