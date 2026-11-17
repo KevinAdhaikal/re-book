@@ -43,7 +43,10 @@
         <button type="submit" style="background: none; border: none; color: var(--admin-danger); cursor: pointer; font-weight: 600;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
       </form>
     @else
-      <a href="{{ route('login') }}" style="background-color: var(--member-accent); color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 6px 16px; border-radius: 6px;">Masuk</a>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{{ route('login') }}" style="color: var(--text-main); border: 1px solid var(--border-color); background: transparent; text-decoration: none; font-size: 0.88rem; font-weight: 600; padding: 6px 14px; border-radius: 6px; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-main)';">Masuk</a>
+        <a href="{{ route('register') }}" style="background-color: var(--member-accent); color: #fff; text-decoration: none; font-size: 0.88rem; font-weight: 600; padding: 6px 16px; border-radius: 6px; transition: opacity 0.15s ease;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">Daftar</a>
+      </div>
     @endauth
   </div>
 </header>

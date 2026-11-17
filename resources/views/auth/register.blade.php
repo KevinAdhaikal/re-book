@@ -47,7 +47,7 @@
   </form>
 
   <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-    Sudah punya akun? <a href="{{ route('login') }}" style="color: var(--member-accent); text-decoration: none; font-weight: 600;">Sign in</a>
+    Sudah punya akun? <a href="{{ route('login') }}" style="color: #58a6ff; text-decoration: none; font-weight: 600;">Masuk di sini</a>
   </div>
 </div>
 @endsection
