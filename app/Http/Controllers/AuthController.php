@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -35,6 +35,7 @@ class AuthController extends Controller
             // Cek jika akun diblokir admin
             if (Auth::user()->status === 'Diblokir') {
                 Auth::logout();
+
                 return back()->withErrors(['email' => 'Akun Anda telah diblokir oleh admin.']);
             }
 
@@ -86,7 +87,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('member.profile')->with('success', 'Selamat datang di Re:Book, ' . $user->name . '! Akun Anda berhasil didaftarkan.');
+        return redirect()->route('member.profile')->with('success', 'Selamat datang di Re:Book, '.$user->name.'! Akun Anda berhasil didaftarkan.');
     }
 
     public function logout(Request $request)

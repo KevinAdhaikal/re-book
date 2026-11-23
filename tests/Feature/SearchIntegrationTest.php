@@ -14,7 +14,7 @@ class SearchIntegrationTest extends TestCase
         $this->assertNotNull($book);
 
         // Search with a query matching book
-        $response = $this->get('/?search=' . urlencode(mb_substr($book->title, 0, 4)));
+        $response = $this->get('/?search='.urlencode(mb_substr($book->title, 0, 4)));
         $response->assertStatus(200);
         $response->assertSee($book->title);
     }
@@ -25,7 +25,7 @@ class SearchIntegrationTest extends TestCase
         $this->assertNotNull($member);
 
         // Search member name with tab=users
-        $response = $this->get('/?search=' . urlencode(mb_substr($member->name, 0, 4)) . '&tab=users');
+        $response = $this->get('/?search='.urlencode(mb_substr($member->name, 0, 4)).'&tab=users');
         $response->assertStatus(200);
         $response->assertSee($member->name);
     }

@@ -40,10 +40,10 @@ class Review extends Model
         return $this->belongsTo(Book::class);
     }
 
-    // Relasi ke Komentar di ulasan ini
+    // Relasi ke Komentar di ulasan ini (Terbaru di atas)
     public function comments()
     {
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(Comment::class)->latest('id');
     }
 
     // Relasi Member yang menyukai ulasan ini

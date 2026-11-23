@@ -17,10 +17,10 @@ class Book extends Model
         'cover',
     ];
 
-    // Relasi: Satu buku memiliki banyak Ulasan (Reviews)
+    // Relasi: Satu buku memiliki banyak Ulasan (Reviews, urutan terbaru di atas)
     public function reviews()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(Review::class)->latest('id');
     }
 
     // Relasi: User Member yang menyukai buku ini (Like system)

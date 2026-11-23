@@ -16,7 +16,9 @@ class ReadingShelf extends Model
     ];
 
     public const STATUS_WANT_TO_READ = 'want_to_read';
+
     public const STATUS_CURRENTLY_READING = 'currently_reading';
+
     public const STATUS_READ = 'read';
 
     public static function statusLabels(): array

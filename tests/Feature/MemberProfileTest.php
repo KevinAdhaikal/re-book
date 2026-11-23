@@ -13,7 +13,9 @@ use Tests\TestCase;
 class MemberProfileTest extends TestCase
 {
     protected $member1;
+
     protected $member2;
+
     protected $book;
 
     protected function setUp(): void
@@ -105,10 +107,11 @@ class MemberProfileTest extends TestCase
 
     protected function fakeImage(string $name = 'avatar.png', int $sizeInKb = 10): UploadedFile
     {
-        $png = base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
         if ($sizeInKb * 1024 > strlen($png)) {
             $png .= str_repeat(' ', ($sizeInKb * 1024) - strlen($png));
         }
+
         return UploadedFile::fake()->createWithContent($name, $png);
     }
 

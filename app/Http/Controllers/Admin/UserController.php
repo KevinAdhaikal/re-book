@@ -19,7 +19,7 @@ class UserController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -73,6 +73,7 @@ class UserController extends Controller
         $user->save();
 
         $pesan = $user->status === 'Diblokir' ? 'Akun member berhasil diblokir!' : 'Akun member berhasil diaktifkan kembali!';
+
         return back()->with('success', $pesan);
     }
 }

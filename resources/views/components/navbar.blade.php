@@ -1,27 +1,178 @@
+<style>
+  .navbar-search-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: rgba(13, 17, 23, 0.85);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+  .navbar-search-wrapper:hover {
+    border-color: #484f58;
+    background: rgba(13, 17, 23, 0.95);
+  }
+  .navbar-search-wrapper:focus-within {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    background: #0d1117;
+  }
+
+  .navbar-category-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border-color);
+    padding: 0 6px 0 14px;
+    flex-shrink: 0;
+  }
+  .navbar-category-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 7px 18px 7px 0;
+    outline: none;
+    transition: color 0.15s ease;
+  }
+  .navbar-category-select:hover, .navbar-category-select:focus {
+    color: var(--text-main);
+  }
+  .navbar-category-caret {
+    position: absolute;
+    right: 8px;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .navbar-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 250px;
+    width: 310px;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .navbar-search-wrapper:focus-within .navbar-input-wrapper {
+    width: 380px;
+  }
+  @media (max-width: 900px) {
+    .navbar-input-wrapper,
+    .navbar-search-wrapper:focus-within .navbar-input-wrapper {
+      width: 200px;
+      min-width: 170px;
+    }
+  }
+
+  .navbar-search-field {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    font-size: 0.86rem !important;
+    padding: 7px 10px !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .navbar-search-field::placeholder {
+    color: #6e7681;
+    font-size: 0.84rem;
+  }
+
+  .navbar-kbd-shortcut {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #30363d;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+  }
+  .navbar-search-wrapper:focus-within .navbar-kbd-shortcut {
+    opacity: 0.6;
+  }
+
+  .navbar-submit-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: var(--text-muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .navbar-submit-btn:hover {
+    background: var(--member-accent);
+    color: #fff;
+    border-color: var(--member-accent);
+    transform: translateX(1px);
+  }
+
+  .navbar-search-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: -90px;
+    width: calc(100% + 90px);
+    min-width: 400px;
+    max-width: 92vw;
+    background: #161b22;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 1050;
+    overflow: hidden;
+  }
+</style>
+
 <header style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; position: sticky; top: 0; z-index: 1000;">
   <a href="{{ route('home') }}" style="background-color: var(--member-accent); color: #fff; font-weight: 800; font-size: 1.1rem; padding: 4px 10px; border-radius: 4px; text-decoration: none;">Re:Book</a>
   
-  <form id="navbar-search-form" action="{{ request()->routeIs('member.likes.*') ? route('member.likes.index') : route('search') }}" method="GET" style="display: flex; align-items: center; gap: 8px; position: relative;">
-    <!-- Dropdown Category Filter -->
-    <select name="filter_type" id="navbar-filter-type" style="padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; font-size: 0.9rem; cursor: pointer;">
-      <option value="all" {{ request('filter_type') == 'all' ? 'selected' : '' }}>Semua</option>
-      <option value="title" {{ request('filter_type') == 'title' ? 'selected' : '' }}>Judul</option>
-      <option value="author" {{ request('filter_type') == 'author' ? 'selected' : '' }}>Penulis</option>
-      <option value="genre" {{ request('filter_type') == 'genre' ? 'selected' : '' }}>Genre</option>
-    </select>
+  <form id="navbar-search-form" action="{{ request()->routeIs('member.likes.*') ? route('member.likes.index') : route('search') }}" method="GET" class="navbar-search-wrapper">
+    <!-- Integrated Category Filter -->
+    <div class="navbar-category-wrapper">
+      <select name="filter_type" id="navbar-filter-type" class="navbar-category-select">
+        <option value="all" {{ request('filter_type') == 'all' ? 'selected' : '' }}>Semua</option>
+        <option value="title" {{ request('filter_type') == 'title' ? 'selected' : '' }}>Judul</option>
+        <option value="author" {{ request('filter_type') == 'author' ? 'selected' : '' }}>Penulis</option>
+        <option value="genre" {{ request('filter_type') == 'genre' ? 'selected' : '' }}>Genre</option>
+      </select>
+      <i class="fa-solid fa-chevron-down navbar-category-caret"></i>
+    </div>
 
-    <!-- Input Keyword Pencarian & Live Search Dropdown -->
-    <div style="position: relative; display: flex; align-items: center;">
-      <input type="text" name="q" id="navbar-search-input" value="{{ request('q', request('search')) }}" autocomplete="off" placeholder="Cari judul, penulis, atau member..." style="padding: 8px 75px 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; width: 300px; font-size: 0.9rem; transition: border-color 0.2s;">
+    <!-- Search Input Area -->
+    <div class="navbar-input-wrapper">
+      <i class="fa-solid fa-magnifying-glass" id="navbar-search-icon" style="color: var(--text-muted); font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
       
-      <span id="navbar-shortcut-badge" style="position: absolute; right: 32px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; padding: 2px 5px; border-radius: 4px; pointer-events: none; font-family: monospace;">Ctrl K</span>
+      <input type="text" name="q" id="navbar-search-input" value="{{ request('q', request('search')) }}" autocomplete="off" placeholder="Cari judul, penulis, atau member..." class="navbar-search-field">
+      
+      <div style="display: flex; align-items: center; gap: 6px; padding-right: 8px;">
+        <span id="navbar-shortcut-badge" class="navbar-kbd-shortcut" title="Tekan Ctrl+K atau / untuk Command Palette">Ctrl K</span>
+        <button type="submit" id="navbar-search-btn" class="navbar-submit-btn" title="Cari">
+          <i class="fa-solid fa-arrow-right" style="font-size: 0.72rem;"></i>
+        </button>
+      </div>
 
-      <button type="submit" id="navbar-search-btn" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer;">
-        <i class="fa-solid fa-magnifying-glass" id="navbar-search-icon"></i>
-      </button>
-
-      <!-- Live Search Results Dropdown (Inline) -->
-      <div id="live-search-dropdown" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 380px; max-width: 90vw; background: #161b22; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); z-index: 1050; overflow: hidden;">
+      <!-- Live Search Results Dropdown -->
+      <div id="live-search-dropdown" class="navbar-search-dropdown">
         <!-- Injected via JavaScript -->
       </div>
     </div>

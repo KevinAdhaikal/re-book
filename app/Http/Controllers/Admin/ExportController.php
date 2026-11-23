@@ -27,12 +27,12 @@ class ExportController extends Controller
      */
     public function exportBooks(): StreamedResponse
     {
-        $filename = 'rebook_katalog_buku_' . date('Y-m-d_His') . '.csv';
+        $filename = 'rebook_katalog_buku_'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
             // Tambahkan UTF-8 BOM untuk kompatibilitas Excel
-            fputs($handle, "\xEF\xBB\xBF");
+            fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, ['ID', 'Judul Buku', 'Penulis', 'Genre', 'Rating Rata-rata', 'Total Ulasan', 'Total Disukai', 'Tanggal Ditambahkan']);
 
@@ -65,11 +65,11 @@ class ExportController extends Controller
      */
     public function exportUsers(): StreamedResponse
     {
-        $filename = 'rebook_daftar_member_' . date('Y-m-d_His') . '.csv';
+        $filename = 'rebook_daftar_member_'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
-            fputs($handle, "\xEF\xBB\xBF");
+            fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, ['ID', 'Nama Lengkap', 'Email', 'Role', 'Status', 'Bio', 'Genre Favorit', 'Total Ulasan', 'Total Buku Disukai', 'Total Pengikut', 'Tanggal Bergabung']);
 
@@ -105,11 +105,11 @@ class ExportController extends Controller
      */
     public function exportReviews(): StreamedResponse
     {
-        $filename = 'rebook_seluruh_ulasan_' . date('Y-m-d_His') . '.csv';
+        $filename = 'rebook_seluruh_ulasan_'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
-            fputs($handle, "\xEF\xBB\xBF");
+            fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, ['ID Ulasan', 'Judul Buku', 'Nama Member', 'Email Member', 'Rating', 'Isi Ulasan', 'Total Like Ulasan', 'Total Komentar', 'Tanggal Ulasan']);
 

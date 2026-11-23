@@ -26,9 +26,6 @@ class ContentFilterService
     /**
      * Sensor kata kasar dari teks input menjadi tanda bintang (****)
      * Menggunakan analisis konteks cerdas untuk membedakan satwa/cerita vs makian.
-     *
-     * @param string|null $text
-     * @return string|null
      */
     public static function filter(?string $text): ?string
     {
@@ -60,18 +57,19 @@ class ContentFilterService
             $isAmbiguous = in_array($lowerWord, self::$ambiguousWords);
 
             $quoted = preg_quote($word, '/');
-            $pattern = '/(?<=^|[^a-zA-Z0-9])(' . $quoted . '(?:nya|lah|kan|mu|ku|kah)?)(?=[^a-zA-Z0-9]|$)/iu';
+            $pattern = '/(?<=^|[^a-zA-Z0-9])('.$quoted.'(?:nya|lah|kan|mu|ku|kah)?)(?=[^a-zA-Z0-9]|$)/iu';
 
-            if (!$isAmbiguous) {
+            if (! $isAmbiguous) {
                 // Kata kasar murni (non-ambigu) -> selalu disensor tanpa syarat
                 $text = preg_replace_callback($pattern, function ($matches) {
                     return str_repeat('*', mb_strlen($matches[1]));
                 }, $text);
+
                 continue;
             }
 
             // Kata ambigu (satwa / fabel / cerita): evaluasi konteks sekitar
-            if (!preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE)) {
+            if (! preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE)) {
                 continue;
             }
 

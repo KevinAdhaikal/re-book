@@ -31,13 +31,13 @@ class ReviewModerationController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('content', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('book', function ($bq) use ($search) {
-                      $bq->where('title', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('book', function ($bq) use ($search) {
+                        $bq->where('title', 'like', "%{$search}%");
+                    });
             });
         }
 

@@ -10,8 +10,11 @@ use Tests\TestCase;
 class AdminReviewAndExportTest extends TestCase
 {
     protected $admin;
+
     protected $member;
+
     protected $book;
+
     protected $review;
 
     protected function setUp(): void

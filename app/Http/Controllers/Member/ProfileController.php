@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\ReadingShelf;
 use App\Models\User;
 use App\Services\ContentFilterService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -42,10 +43,10 @@ class ProfileController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Mengambil maksimal 4 buku favorit untuk showcase profil
         $favoriteBooks = $user->favoriteBooks()->withAvg('reviews', 'rating')->take(4)->get();
-        
+
         // Ulasan yang ditulis oleh member ini
         $myReviews = $user->reviews()->with('book')->latest()->get();
 
@@ -58,10 +59,11 @@ class ProfileController extends Controller
             ->merge($user->readingShelves()->pluck('book_id'))
             ->unique();
 
-        $candidateBooks = Book::whereIn('id', $userBookIds)->get();
-        if ($candidateBooks->count() < 12) {
+        $candidateBooks = Book::whereIn('id', $userBookIds)->withAvg('reviews', 'rating')->get();
+        if ($candidateBooks->count() < 16) {
             $extra = Book::whereNotIn('id', $candidateBooks->pluck('id'))
-                ->take(16)
+                ->withAvg('reviews', 'rating')
+                ->take(24)
                 ->get();
             $candidateBooks = $candidateBooks->merge($extra);
         }
@@ -71,8 +73,9 @@ class ProfileController extends Controller
                 'id' => $b->id,
                 'title' => $b->title,
                 'author' => $b->author,
-                'cover' => $b->cover ? asset('storage/' . $b->cover) : null,
+                'cover' => $b->cover ? asset('storage/'.$b->cover) : null,
                 'genre' => $b->genre,
+                'rating' => $b->reviews_avg_rating ? number_format($b->reviews_avg_rating, 1) : null,
             ];
         })->values();
 
@@ -89,18 +92,18 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name'            => 'required|string|max:255',
-            'bio'             => 'nullable|string|max:300',
+            'name' => 'required|string|max:255',
+            'bio' => 'nullable|string|max:300',
             'favorite_genres' => 'nullable|array',
             'favorite_genres.*' => 'string|max:50',
-            'avatar'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ], [
-            'name.required'   => 'Nama lengkap wajib diisi.',
-            'name.max'        => 'Nama lengkap maksimal 255 karakter.',
-            'bio.max'         => 'Bio maksimal 300 karakter.',
-            'avatar.image'    => 'File foto profil harus berupa gambar.',
-            'avatar.mimes'    => 'Format gambar yang diperbolehkan adalah JPG, JPEG, PNG, dan WEBP.',
-            'avatar.max'      => 'Ukuran foto profil maksimal 2 MB.',
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.max' => 'Nama lengkap maksimal 255 karakter.',
+            'bio.max' => 'Bio maksimal 300 karakter.',
+            'avatar.image' => 'File foto profil harus berupa gambar.',
+            'avatar.mimes' => 'Format gambar yang diperbolehkan adalah JPG, JPEG, PNG, dan WEBP.',
+            'avatar.max' => 'Ukuran foto profil maksimal 2 MB.',
         ]);
 
         $user->name = $request->name;
@@ -128,6 +131,8 @@ class ProfileController extends Controller
 
         $user->save();
 
+        session()->flash('active_tab', 'identity');
+
         return back()->with('success', 'Profil Anda berhasil diperbarui!');
     }
 
@@ -140,20 +145,24 @@ class ProfileController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'string'],
-            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'current_password.required' => 'Password saat ini wajib diisi.',
-            'password.required'         => 'Password baru wajib diisi.',
-            'password.min'              => 'Password baru minimal 8 karakter.',
-            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
+            session()->flash('active_tab', 'security');
+
             return back()->withErrors(['current_password' => 'Password saat ini yang Anda masukkan salah.']);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
+
+        session()->flash('active_tab', 'security');
 
         return back()->with('success', 'Password Anda berhasil diperbarui!');
     }
@@ -172,24 +181,48 @@ class ProfileController extends Controller
         $user->avatar = null;
         $user->save();
 
+        session()->flash('active_tab', 'identity');
+
         return back()->with('success', 'Foto profil berhasil dihapus dan kembali ke avatar bawaan.');
     }
 
     /**
-     * Halaman Profil Publik (Dapat Dilihat Member Lain)
+     * Halaman Profil Publik (Dapat Dilihat Member Lain - Letterboxd Style)
      */
     public function show($id)
     {
-        $member = User::findOrFail($id);
+        $member = User::withCount(['followers', 'following', 'reviews', 'readingShelves'])->findOrFail($id);
 
         // Maksimal 4 buku favorit untuk showcase profil
         $favoriteBooks = $member->favoriteBooks()->withAvg('reviews', 'rating')->take(4)->get();
 
-        // Ulasan yang ditulis oleh member ini
-        $memberReviews = $member->reviews()->with('book')->latest()->get();
+        // Ulasan yang ditulis oleh member ini (terbaru di atas)
+        $memberReviews = $member->reviews()
+            ->with(['book', 'comments'])
+            ->withCount('likedByUsers')
+            ->latest('id')
+            ->get();
         $reviewsCount = $memberReviews->count();
 
-        return view('member.public_profile', compact('member', 'favoriteBooks', 'memberReviews', 'reviewsCount'));
+        // Buku yang sedang dibaca member saat ini (Currently Reading)
+        $currentlyReading = $member->readingShelves()
+            ->where('status', ReadingShelf::STATUS_CURRENTLY_READING)
+            ->with('book.reviews')
+            ->latest('updated_at')
+            ->take(4)
+            ->get();
+
+        // Jumlah buku yang sudah selesai dibaca
+        $readCount = $member->readingShelves()->where('status', ReadingShelf::STATUS_READ)->count();
+
+        return view('member.public_profile', compact(
+            'member',
+            'favoriteBooks',
+            'memberReviews',
+            'reviewsCount',
+            'currentlyReading',
+            'readCount'
+        ));
     }
 
     /**
@@ -198,11 +231,13 @@ class ProfileController extends Controller
     public function updateFavorites(Request $request)
     {
         $request->validate([
-            'book_ids' => 'required|array|max:4', // Maksimal 4 buku
+            'book_ids' => 'nullable|array|max:4', // Maksimal 4 buku
         ]);
 
         $user = Auth::user();
-        $user->favoriteBooks()->sync($request->book_ids);
+        $user->favoriteBooks()->sync($request->book_ids ?? []);
+
+        session()->flash('active_tab', 'favorites');
 
         return back()->with('success', 'Pajangan 4 Buku Favorit berhasil diperbarui!');
     }

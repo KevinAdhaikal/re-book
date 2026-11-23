@@ -101,13 +101,13 @@ class ProfileSecurityAndFilterTest extends TestCase
 
     public function test_bio_censors_bad_words_on_profile_update()
     {
-        $badWordText = 'sensorunik_' . uniqid();
+        $badWordText = 'sensorunik_'.uniqid();
         BadWord::create(['word' => $badWordText]);
 
         try {
             $response = $this->actingAs($this->member)->put(route('member.profile.update'), [
                 'name' => 'Member Security Test',
-                'bio' => 'Halo ini bio dengan kata ' . $badWordText . ' yang kasar!',
+                'bio' => 'Halo ini bio dengan kata '.$badWordText.' yang kasar!',
                 'favorite_genres' => ['Novel', 'Fiksi'],
             ]);
 
@@ -124,7 +124,7 @@ class ProfileSecurityAndFilterTest extends TestCase
 
     public function test_content_filter_service_handles_suffixes_and_punctuation()
     {
-        $testWord = 'kasar_' . uniqid();
+        $testWord = 'kasar_'.uniqid();
         BadWord::create(['word' => $testWord]);
 
         try {
@@ -145,13 +145,13 @@ class ProfileSecurityAndFilterTest extends TestCase
         BadWord::firstOrCreate(['word' => 'anjing']);
         BadWord::firstOrCreate(['word' => 'babi']);
 
-        $narrative1 = "Novel Hachiko menceritakan seekor anjing setia yang menunggu pemiliknya.";
+        $narrative1 = 'Novel Hachiko menceritakan seekor anjing setia yang menunggu pemiliknya.';
         $this->assertEquals($narrative1, ContentFilterService::filter($narrative1));
 
-        $narrative2 = "Karakter utama memelihara anjing di rumahnya.";
+        $narrative2 = 'Karakter utama memelihara anjing di rumahnya.';
         $this->assertEquals($narrative2, ContentFilterService::filter($narrative2));
 
-        $narrative3 = "Ada perburuan babi hutan di lereng gunung.";
+        $narrative3 = 'Ada perburuan babi hutan di lereng gunung.';
         $this->assertEquals($narrative3, ContentFilterService::filter($narrative3));
     }
 
@@ -160,17 +160,17 @@ class ProfileSecurityAndFilterTest extends TestCase
         BadWord::firstOrCreate(['word' => 'anjing']);
         BadWord::firstOrCreate(['word' => 'babi']);
 
-        $abuse1 = "Dasar anjing lu reviewernya!";
+        $abuse1 = 'Dasar anjing lu reviewernya!';
         $output1 = ContentFilterService::filter($abuse1);
         $this->assertStringNotContainsString('anjing', $output1);
         $this->assertStringContainsString('******', $output1);
 
-        $abuse2 = "Si anjing yang nulis buku ini jelek bgt.";
+        $abuse2 = 'Si anjing yang nulis buku ini jelek bgt.';
         $output2 = ContentFilterService::filter($abuse2);
         $this->assertStringNotContainsString('anjing', $output2);
         $this->assertStringContainsString('******', $output2);
 
-        $abuse3 = "Anjing! Kenapa endingnya mati semua.";
+        $abuse3 = 'Anjing! Kenapa endingnya mati semua.';
         $output3 = ContentFilterService::filter($abuse3);
         $this->assertStringNotContainsString('Anjing', $output3);
         $this->assertStringContainsString('******!', $output3);

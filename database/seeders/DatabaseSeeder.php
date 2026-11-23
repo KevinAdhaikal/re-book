@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
+use App\Models\BadWord;
 use App\Models\Book;
 use App\Models\Review;
-use App\Models\BadWord;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -17,10 +17,10 @@ class DatabaseSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'admin@rebook.com'],
             [
-                'name'     => 'Admin Rebook',
+                'name' => 'Admin Rebook',
                 'password' => Hash::make('password123'),
-                'role'     => 'admin',
-                'status'   => 'Aktif',
+                'role' => 'admin',
+                'status' => 'Aktif',
             ]
         );
 
@@ -28,10 +28,10 @@ class DatabaseSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'member@rebook.com'],
             [
-                'name'     => 'Zivia Valleria',
+                'name' => 'Zivia Valleria',
                 'password' => Hash::make('password123'),
-                'role'     => 'member',
-                'status'   => 'Aktif',
+                'role' => 'member',
+                'status' => 'Aktif',
             ]
         );
 

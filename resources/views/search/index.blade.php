@@ -243,20 +243,21 @@
       </div>
 
       {{-- Search Form on Page --}}
-      <form action="{{ route('search') }}" method="GET" style="display: flex; gap: 8px; width: 380px; max-width: 100%;">
+      <form action="{{ route('search') }}" method="GET" style="display: flex; gap: 8px; width: 400px; max-width: 100%;">
         <input type="hidden" name="tab" value="{{ $tab }}">
         <input type="hidden" name="view" value="{{ $view }}">
-        <div style="position: relative; flex: 1;">
+        <div style="position: relative; flex: 1; display: flex; align-items: center; background: #0d1117; border: 1px solid var(--border-color); border-radius: 24px; padding: 0 14px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.25); transition: all 0.2s ease;">
+          <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); font-size: 0.82rem; margin-right: 8px;"></i>
           <input type="text" name="q" value="{{ $search }}" placeholder="Cari buku, penulis, genre, atau member..." 
-                 style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 36px 8px 12px; color: var(--text-main); font-size: 0.88rem; outline: none;">
+                 style="flex: 1; background: transparent; border: none; padding: 9px 0; color: var(--text-main); font-size: 0.88rem; outline: none;">
           @if($search !== '')
-            <a href="{{ route('search', ['tab' => $tab, 'view' => $view]) }}" title="Bersihkan pencarian" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+            <a href="{{ route('search', ['tab' => $tab, 'view' => $view]) }}" title="Bersihkan pencarian" style="color: var(--text-muted); text-decoration: none; font-size: 0.82rem; padding: 4px; margin-right: 2px;">
               <i class="fa-solid fa-xmark"></i>
             </a>
           @endif
         </div>
-        <button type="submit" style="background: var(--member-accent); color: white; border: none; border-radius: 6px; padding: 0 16px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-magnifying-glass"></i> Cari
+        <button type="submit" style="background: var(--member-accent); color: white; border: none; border-radius: 24px; padding: 0 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3); transition: background 0.15s ease;">
+          Cari
         </button>
       </form>
     </div>

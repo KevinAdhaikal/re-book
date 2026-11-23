@@ -12,7 +12,7 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         // Cek apakah user sudah login dan role-nya sesuai
-        if (!Auth::check() || Auth::user()->role !== $role) {
+        if (! Auth::check() || Auth::user()->role !== $role) {
             abort(403, 'Kamu tidak memiliki akses ke halaman ini.');
         }
 
@@ -21,6 +21,7 @@ class CheckRole
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
             return redirect()->route('login')->withErrors(['email' => 'Akun Anda telah diblokir oleh admin.']);
         }
 

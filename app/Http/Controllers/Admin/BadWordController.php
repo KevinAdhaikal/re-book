@@ -12,6 +12,7 @@ class BadWordController extends Controller
     public function index()
     {
         $badWords = BadWord::latest()->get();
+
         return view('admin.filter_words.index', compact('badWords'));
     }
 
@@ -35,6 +36,7 @@ class BadWordController extends Controller
 
             if (BadWord::where('word', $cleaned)->exists()) {
                 $skipped++;
+
                 continue;
             }
 
@@ -66,8 +68,8 @@ class BadWordController extends Controller
         $filtered = ContentFilterService::filter($original);
 
         return response()->json([
-            'original'       => $original,
-            'filtered'       => $filtered,
+            'original' => $original,
+            'filtered' => $filtered,
             'has_censorship' => $original !== $filtered,
         ]);
     }

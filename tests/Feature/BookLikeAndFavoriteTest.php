@@ -3,17 +3,20 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
-use App\Models\User;
-use App\Models\Review;
 use App\Models\Comment;
+use App\Models\Review;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class BookLikeAndFavoriteTest extends TestCase
 {
     protected $member1;
+
     protected $member2;
+
     protected $book1;
+
     protected $book2;
 
     protected function setUp(): void
@@ -145,7 +148,7 @@ class BookLikeAndFavoriteTest extends TestCase
         // A. CREATE REVIEW
         $createResponse = $this->actingAs($this->member1)->post(route('member.reviews.store'), [
             'book_id' => $this->book1->id,
-            'rating'  => 5,
+            'rating' => 5,
             'content' => 'Buku yang sangat luar biasa dan inspiratif!',
         ]);
         $createResponse->assertSessionHas('success');
@@ -159,7 +162,7 @@ class BookLikeAndFavoriteTest extends TestCase
         // Cegah review duplikat untuk buku yang sama oleh member yang sama
         $duplicateResponse = $this->actingAs($this->member1)->post(route('member.reviews.store'), [
             'book_id' => $this->book1->id,
-            'rating'  => 4,
+            'rating' => 4,
             'content' => 'Mencoba membuat ulasan kedua...',
         ]);
         $duplicateResponse->assertSessionHas('error');
@@ -177,7 +180,7 @@ class BookLikeAndFavoriteTest extends TestCase
 
         // C. UPDATE REVIEW
         $updateResponse = $this->actingAs($this->member1)->put(route('member.reviews.update', $review->id), [
-            'rating'  => 4,
+            'rating' => 4,
             'content' => 'Konten ulasan yang sudah diperbarui dengan baik.',
         ]);
         $updateResponse->assertSessionHas('success');
@@ -188,7 +191,7 @@ class BookLikeAndFavoriteTest extends TestCase
 
         // Member lain tidak boleh bisa mengupdate review milik member1 (403)
         $unauthorizedEdit = $this->actingAs($this->member2)->put(route('member.reviews.update', $review->id), [
-            'rating'  => 1,
+            'rating' => 1,
             'content' => 'Mencoba merusak ulasan orang lain.',
         ]);
         $unauthorizedEdit->assertStatus(403);
@@ -218,7 +221,7 @@ class BookLikeAndFavoriteTest extends TestCase
         $review = Review::create([
             'user_id' => $this->member1->id,
             'book_id' => $this->book1->id,
-            'rating'  => 5,
+            'rating' => 5,
             'content' => 'Ulasan awal member 1 untuk dikomentari.',
         ]);
 

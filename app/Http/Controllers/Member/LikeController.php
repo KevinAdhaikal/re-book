@@ -42,8 +42,8 @@ class LikeController extends Controller
                 // 'all' / Semua: mencari berdasarkan judul, penulis, dan genre
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('author', 'like', "%{$search}%")
-                      ->orWhere('genre', 'like', "%{$search}%");
+                        ->orWhere('author', 'like', "%{$search}%")
+                        ->orWhere('genre', 'like', "%{$search}%");
                 });
             }
         }
@@ -56,7 +56,7 @@ class LikeController extends Controller
             ->toArray();
 
         // Jika ada id buku, jaga urutan sesuai created_at desc
-        if (!empty($likedBookIds)) {
+        if (! empty($likedBookIds)) {
             $likedBooks = $query->get()->sortBy(function ($book) use ($likedBookIds) {
                 return array_search($book->id, $likedBookIds);
             })->values();
@@ -72,7 +72,7 @@ class LikeController extends Controller
      */
     public function toggle(Request $request, $id)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -80,6 +80,7 @@ class LikeController extends Controller
                     'redirect' => route('login'),
                 ], 401);
             }
+
             return redirect()->route('login');
         }
 

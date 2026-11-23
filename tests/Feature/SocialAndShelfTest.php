@@ -6,14 +6,16 @@ use App\Models\Book;
 use App\Models\ReadingShelf;
 use App\Models\Review;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SocialAndShelfTest extends TestCase
 {
     protected $member1;
+
     protected $member2;
+
     protected $book;
+
     protected $review;
 
     protected function setUp(): void

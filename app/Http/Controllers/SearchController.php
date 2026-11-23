@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
@@ -27,18 +26,18 @@ class SearchController extends Controller
         if ($search !== '') {
             $bookQuery->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%")
-                  ->orWhere('genre', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('author', 'like', "%{$search}%")
+                    ->orWhere('genre', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        if ($genre !== 'all' && !empty($genre)) {
+        if ($genre !== 'all' && ! empty($genre)) {
             $bookQuery->where('genre', $genre);
         }
 
         if ($minRating > 0) {
-            $bookQuery->whereRaw('(select avg(rating) from reviews where reviews.book_id = books.id) >= ' . floatval($minRating));
+            $bookQuery->whereRaw('(select avg(rating) from reviews where reviews.book_id = books.id) >= '.floatval($minRating));
         }
 
         // Pengurutan (Sorting)
@@ -60,8 +59,8 @@ class SearchController extends Controller
         if ($search !== '') {
             $userQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('bio', 'like', "%{$search}%")
-                  ->orWhere('favorite_genres', 'like', "%{$search}%");
+                    ->orWhere('bio', 'like', "%{$search}%")
+                    ->orWhere('favorite_genres', 'like', "%{$search}%");
             });
         }
         $users = $userQuery->paginate(12, ['*'], 'users_page')->withQueryString();
@@ -70,10 +69,10 @@ class SearchController extends Controller
         $fallbackBooks = collect();
         if ($books->total() === 0 && $users->total() === 0) {
             $fallbackBooks = Book::withAvg('reviews', 'rating')
-                                 ->withCount(['reviews', 'likedByUsers'])
-                                 ->orderByDesc('liked_by_users_count')
-                                 ->take(4)
-                                 ->get();
+                ->withCount(['reviews', 'likedByUsers'])
+                ->orderByDesc('liked_by_users_count')
+                ->take(4)
+                ->get();
         }
 
         // Daftar Genre Dinamis untuk Dropdown Filter

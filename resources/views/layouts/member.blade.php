@@ -105,11 +105,6 @@
           </a>
         </li>
         <li>
-          <a href="{{ route('member.fav') }}" class="{{ request()->routeIs('member.fav*') ? 'active' : '' }}">
-            <i class="fa-solid fa-star" style="color: var(--star-rating);"></i>Buku Favorit
-          </a>
-        </li>
-        <li>
           <a href="{{ route('member.shelf.index') }}" class="{{ request()->routeIs('member.shelf.*') ? 'active' : '' }}">
             <i class="fa-solid fa-bookmark" style="color: #58a6ff;"></i>Rak Bacaan
           </a>

@@ -71,6 +71,7 @@ class SocialController extends Controller
                     'message' => 'Anda tidak dapat mengikuti diri sendiri.',
                 ], 422);
             }
+
             return back()->with('error', 'Anda tidak dapat mengikuti diri sendiri.');
         }
 

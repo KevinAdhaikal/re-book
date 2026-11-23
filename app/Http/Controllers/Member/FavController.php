@@ -11,22 +11,11 @@ class FavController extends Controller
 {
     /**
      * Tampilkan halaman Buku Favorit milik member yang sedang login.
+     * Dialihkan langsung ke Tab 4 Buku Favorit pada Pengaturan Profil.
      */
     public function index()
     {
-        $user = Auth::user();
-
-        // 4 Buku Favorit milik member
-        $favoriteBooks = $user->favoriteBooks()
-            ->withAvg('reviews', 'rating')
-            ->get();
-
-        // Seluruh katalog buku untuk dropdown/modal tambah buku favorit
-        $availableBooks = Book::withAvg('reviews', 'rating')
-            ->orderBy('title', 'asc')
-            ->get();
-
-        return view('member.fav', compact('user', 'favoriteBooks', 'availableBooks'));
+        return redirect()->to(route('member.profile').'#favorites');
     }
 
     /**

@@ -94,12 +94,56 @@ class BookController extends Controller
         return view('landing', compact('books', 'popularReviews', 'trendingBooks', 'matchedUsers'));
     }
 
-    // Detail Buku & Ulasannya
+    // Detail Buku & Ulasannya (Letterboxd Style)
     public function show($id)
     {
-        $book = Book::with(['reviews.user', 'reviews.comments.user'])->findOrFail($id);
+        $book = Book::with([
+            'reviews' => function ($q) {
+                $q->latest('id');
+            },
+            'reviews.user',
+            'reviews.comments' => function ($q) {
+                $q->latest('id');
+            },
+            'reviews.comments.user',
+            'readingShelves',
+        ])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['reviews', 'likedByUsers'])
+            ->findOrFail($id);
 
-        return view('books.show', compact('book'));
+        // Hitung distribusi rating histogram (0.5 s/d 5.0 bintang)
+        $ratingDistribution = [
+            '0.5' => 0,
+            '1.0' => 0,
+            '1.5' => 0,
+            '2.0' => 0,
+            '2.5' => 0,
+            '3.0' => 0,
+            '3.5' => 0,
+            '4.0' => 0,
+            '4.5' => 0,
+            '5.0' => 0,
+        ];
+
+        foreach ($book->reviews as $r) {
+            $scoreKey = number_format((float) $r->rating, 1);
+            if (isset($ratingDistribution[$scoreKey])) {
+                $ratingDistribution[$scoreKey]++;
+            }
+        }
+
+        $maxRatingCount = max(array_values($ratingDistribution)) ?: 1;
+
+        // Statistik pembaca rak
+        $shelfStats = [
+            'want_to_read' => $book->readingShelves->where('status', 'want_to_read')->count(),
+            'currently_reading' => $book->readingShelves->where('status', 'currently_reading')->count(),
+            'read' => $book->readingShelves->where('status', 'read')->count(),
+            'total' => $book->readingShelves->count(),
+        ];
+
+        return view('books.show', compact('book', 'ratingDistribution', 'maxRatingCount', 'shelfStats'));
     }
 
     // [API/AJAX] Pencarian Cepat Live Dropdown Search

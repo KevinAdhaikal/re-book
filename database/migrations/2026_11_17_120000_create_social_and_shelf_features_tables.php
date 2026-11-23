@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Status Rak Bacaan (Want to Read, Currently Reading, Read)
-        if (!Schema::hasTable('reading_shelves')) {
+        if (! Schema::hasTable('reading_shelves')) {
             Schema::create('reading_shelves', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -22,7 +22,7 @@ return new class extends Migration
         }
 
         // 2. Like / Reaksi pada Ulasan Member
-        if (!Schema::hasTable('review_likes')) {
+        if (! Schema::hasTable('review_likes')) {
             Schema::create('review_likes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -34,7 +34,7 @@ return new class extends Migration
         }
 
         // 3. Sistem Follow Antar Member
-        if (!Schema::hasTable('user_follows')) {
+        if (! Schema::hasTable('user_follows')) {
             Schema::create('user_follows', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');

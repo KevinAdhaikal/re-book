@@ -38,7 +38,7 @@ class AuthRegistrationTest extends TestCase
 
     public function test_member_registration_validation_and_success_flow()
     {
-        $email = 'new_member_' . uniqid() . '@rebook.com';
+        $email = 'new_member_'.uniqid().'@rebook.com';
 
         // 1. Password confirmation mismatch
         $responseMismatch = $this->post(route('register'), [

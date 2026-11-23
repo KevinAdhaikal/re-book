@@ -430,7 +430,19 @@
             </p>
 
             {{-- Thread Balasan Komentar --}}
-            <div id="landing-comments-wrap-{{ $review->id }}" style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid var(--border-color); display: {{ $review->comments->count() > 0 ? 'flex' : 'none' }}; flex-direction: column; gap: 8px;">
+            <div id="landing-comments-wrap-{{ $review->id }}" style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+              {{-- Form Cepat Balas Komentar di Atas --}}
+              @auth
+                <form class="form-comment-landing-ajax" action="{{ route('member.comments.store', $review->id) }}" method="POST" data-review-id="{{ $review->id }}" style="display: flex; gap: 8px; margin-bottom: 4px;">
+                  @csrf
+                  <input type="text" name="comment" placeholder="Tulis tanggapan untuk ulasan ini..." required
+                    style="flex: 1; padding: 6px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 0.82rem; outline: none;">
+                  <button type="submit" class="btn-submit-comment" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 14px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: background 0.15s ease; display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="btn-text">Balas</span>
+                  </button>
+                </form>
+              @endauth
+
               <div id="landing-comments-list-{{ $review->id }}" style="display: flex; flex-direction: column; gap: 8px;">
                 @foreach($review->comments->take(2) as $comment)
                   <div id="landing-comment-item-{{ $comment->id }}" class="landing-comment-item" style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; transition: all 0.25s ease;">
@@ -455,18 +467,6 @@
                 </a>
               @endif
             </div>
-
-            {{-- Form Cepat Balas Komentar --}}
-            @auth
-              <form class="form-comment-landing-ajax" action="{{ route('member.comments.store', $review->id) }}" method="POST" data-review-id="{{ $review->id }}" style="display: flex; gap: 8px;">
-                @csrf
-                <input type="text" name="comment" placeholder="Tulis tanggapan untuk ulasan ini..." required
-                  style="flex: 1; padding: 6px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 0.82rem; outline: none;">
-                <button type="submit" class="btn-submit-comment" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 14px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: background 0.15s ease; display: inline-flex; align-items: center; gap: 6px;">
-                  <span class="btn-text">Balas</span>
-                </button>
-              </form>
-            @endauth
 
           </div>
 
@@ -611,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             `;
-            listEl.appendChild(newComment);
+            listEl.prepend(newComment);
           }
         } else {
           throw new Error(data.message || 'Gagal mengirim tanggapan.');
