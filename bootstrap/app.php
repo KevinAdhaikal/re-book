@@ -17,11 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureUserNotBlocked::class,
         ]);
 
-        // DAFTARKAN ALIAS ROLE DI SINI:
         $middleware->alias([
             'role' => CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
     })->create();
