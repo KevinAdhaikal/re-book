@@ -2,6 +2,23 @@
 
 @section('title', 'Rak Bacaan Saya - Re:Book')
 
+@push('styles')
+<style>
+  .shelf-card-item {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .shelf-card-item.shelf-card-leaving {
+    transform: translateX(-20px) scale(0.92);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .shelf-card-item.shelf-card-highlight {
+    border-color: var(--member-accent) !important;
+    box-shadow: 0 0 12px rgba(31, 111, 235, 0.35);
+  }
+</style>
+@endpush
+
 @section('member_content')
 <div style="margin-bottom: 25px;">
   <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
@@ -43,7 +60,7 @@
                 border: 1px solid {{ $isActive ? '#1f6feb' : 'var(--border-color)' }};">
         <i class="fa-solid {{ $tab['icon'] }}"></i>
         <span>{{ $tab['label'] }}</span>
-        <span style="background: rgba(255,255,255,0.15); padding: 1px 7px; border-radius: 10px; font-size: 0.75rem;">{{ $tabCount }}</span>
+        <span id="shelf-count-{{ $key }}" style="background: rgba(255,255,255,0.15); padding: 1px 7px; border-radius: 10px; font-size: 0.75rem;">{{ $tabCount }}</span>
       </a>
     @endforeach
   </div>
@@ -61,7 +78,7 @@
 
 {{-- Grid Item Rak Bacaan --}}
 @if($shelvedItems->count() > 0)
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <div id="shelf-books-grid" data-active-tab="{{ $statusFilter }}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
     @foreach($shelvedItems as $item)
       @php
         $b = $item->book;
@@ -72,7 +89,8 @@
         ];
         $st = $statusColors[$item->status] ?? $statusColors['want_to_read'];
       @endphp
-      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; gap: 16px; position: relative;">
+      <div id="shelf-card-{{ $b->id }}" class="shelf-card-item" data-book-id="{{ $b->id }}" data-status="{{ $item->status }}"
+           style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; gap: 16px; position: relative;">
         {{-- Cover --}}
         <a href="{{ route('books.show', $b->id) }}" style="flex-shrink: 0; text-decoration: none;">
           @if($b->cover)
@@ -87,8 +105,8 @@
         {{-- Detail & Kontrol Rak --}}
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <div style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; background: {{ $st['bg'] }}; border: 1px solid {{ $st['border'] }}; color: {{ $st['color'] }}; margin-bottom: 6px;">
-              <i class="fa-solid {{ $st['icon'] }}"></i> {{ $item->status_label }}
+            <div class="shelf-status-badge" style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; background: {{ $st['bg'] }}; border: 1px solid {{ $st['border'] }}; color: {{ $st['color'] }}; margin-bottom: 6px; transition: all 0.25s ease;">
+              <i class="fa-solid {{ $st['icon'] }}"></i> <span>{{ $item->status_label }}</span>
             </div>
             <h4 style="font-size: 0.95rem; margin-bottom: 4px; line-height: 1.3;">
               <a href="{{ route('books.show', $b->id) }}" style="color: var(--text-main); text-decoration: none;">{{ $b->title }}</a>
@@ -99,50 +117,184 @@
             </div>
           </div>
 
-          {{-- Form Ubah Status Rak --}}
+          {{-- Form Ubah Status Rak (AJAX) --}}
           <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-            <form action="{{ route('member.shelf.update', $b->id) }}" method="POST" style="flex: 1; margin: 0;">
-              @csrf
-              <select name="status" onchange="this.form.submit()"
-                      style="width: 100%; padding: 5px 8px; background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 0.78rem; outline: none; cursor: pointer;">
-                <option value="want_to_read" {{ $item->status === 'want_to_read' ? 'selected' : '' }}>⏳ Ingin Dibaca</option>
-                <option value="currently_reading" {{ $item->status === 'currently_reading' ? 'selected' : '' }}>📖 Sedang Dibaca</option>
-                <option value="read" {{ $item->status === 'read' ? 'selected' : '' }}>✅ Selesai Dibaca</option>
-              </select>
-            </form>
+            <select class="select-shelf-status" data-book-id="{{ $b->id }}" data-url="{{ route('member.shelf.update', $b->id) }}"
+                    style="flex: 1; padding: 6px 8px; background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 0.78rem; outline: none; cursor: pointer; transition: border-color 0.2s;">
+              <option value="want_to_read" {{ $item->status === 'want_to_read' ? 'selected' : '' }}>⏳ Ingin Dibaca</option>
+              <option value="currently_reading" {{ $item->status === 'currently_reading' ? 'selected' : '' }}>📖 Sedang Dibaca</option>
+              <option value="read" {{ $item->status === 'read' ? 'selected' : '' }}>✅ Selesai Dibaca</option>
+            </select>
 
-            {{-- Hapus dari Rak --}}
-            <form action="{{ route('member.shelf.destroy', $b->id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Hapus buku ini dari rak bacaan Anda?');">
-              @csrf
-              @method('DELETE')
-              <button type="submit" title="Hapus dari Rak"
-                      style="background: transparent; border: 1px solid var(--border-color); color: var(--admin-danger); padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </form>
+            {{-- Hapus dari Rak (1-Klik AJAX) --}}
+            <button type="button" class="btn-delete-shelf" data-book-id="{{ $b->id }}" data-url="{{ route('member.shelf.destroy', $b->id) }}" title="Hapus dari Rak"
+                    style="background: transparent; border: 1px solid var(--border-color); color: var(--admin-danger); padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.15s ease;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
           </div>
         </div>
       </div>
     @endforeach
   </div>
 
-  <div style="margin-top: 20px;">
+  <div id="shelf-pagination-wrap" style="margin-top: 20px;">
     {{ $shelvedItems->links() }}
   </div>
-@else
-  <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 10px; padding: 50px 20px; text-align: center; color: var(--text-muted);">
-    <i class="fa-solid fa-bookmark" style="font-size: 3rem; color: #30363d; margin-bottom: 15px;"></i>
-    <h3 style="color: var(--text-main); margin-bottom: 8px;">Rak Bacaan Masih Kosong</h3>
-    <p style="font-size: 0.9rem; max-width: 450px; margin: 0 auto 20px;">
-      @if($statusFilter !== 'all')
-        Belum ada buku dengan status <strong>{{ $tabs[$statusFilter]['label'] ?? $statusFilter }}</strong>.
-      @else
-        Anda belum menambahkan buku ke rak bacaan. Jelajahi katalog dan tandai buku yang ingin atau sedang Anda baca!
-      @endif
-    </p>
-    <a href="{{ route('home') }}" style="background: var(--member-accent); color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px;">
-      <i class="fa-solid fa-compass"></i> Eksplorasi Buku Sekarang
-    </a>
-  </div>
 @endif
+
+{{-- Empty State (Tampil jika rak kosong atau semua item di tab dipindahkan) --}}
+<div id="shelf-empty-state" style="{{ $shelvedItems->count() > 0 ? 'display: none;' : '' }} background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 10px; padding: 50px 20px; text-align: center; color: var(--text-muted); transition: opacity 0.3s ease;">
+  <i class="fa-solid fa-bookmark" style="font-size: 3rem; color: #30363d; margin-bottom: 15px;"></i>
+  <h3 style="color: var(--text-main); margin-bottom: 8px;">Rak Bacaan Masih Kosong</h3>
+  <p style="font-size: 0.9rem; max-width: 450px; margin: 0 auto 20px;">
+    @if($statusFilter !== 'all')
+      Belum ada buku dengan status <strong>{{ $tabs[$statusFilter]['label'] ?? $statusFilter }}</strong>.
+    @else
+      Anda belum menambahkan buku ke rak bacaan. Jelajahi katalog dan tandai buku yang ingin atau sedang Anda baca!
+    @endif
+  </p>
+  <a href="{{ route('home') }}" style="background: var(--member-accent); color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-compass"></i> Eksplorasi Buku Sekarang
+  </a>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  const grid = document.getElementById('shelf-books-grid');
+  const emptyState = document.getElementById('shelf-empty-state');
+  const paginationWrap = document.getElementById('shelf-pagination-wrap');
+  const activeTab = grid ? grid.dataset.activeTab : 'all';
+
+  const statusConfig = {
+    want_to_read: { icon: 'fa-clock', text: 'Ingin Dibaca', bg: 'rgba(88, 166, 255, 0.15)', border: '#58a6ff', color: '#58a6ff' },
+    currently_reading: { icon: 'fa-book-open-reader', text: 'Sedang Dibaca', bg: 'rgba(210, 153, 34, 0.15)', border: '#d29922', color: '#d29922' },
+    read: { icon: 'fa-circle-check', text: 'Selesai Dibaca', bg: 'rgba(63, 185, 80, 0.15)', border: '#3fb950', color: '#3fb950' }
+  };
+
+  function updateTabCounters(counts) {
+    if (!counts) return;
+    for (const [key, val] of Object.entries(counts)) {
+      const el = document.getElementById(`shelf-count-${key}`);
+      if (el) el.textContent = val;
+    }
+  }
+
+  // 1. Ubah Status Rak secara Instan via AJAX
+  document.querySelectorAll('.select-shelf-status').forEach(select => {
+    select.addEventListener('change', async function () {
+      const newStatus = this.value;
+      const url = this.dataset.url;
+      const bookId = this.dataset.bookId;
+      const card = document.getElementById(`shelf-card-${bookId}`);
+
+      this.disabled = true;
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.showToast({ title: 'Rak Diperbarui', message: data.message, type: 'success' });
+          updateTabCounters(data.counts);
+
+          if (card) {
+            // Jika di tab khusus dan status berbeda dari tab aktif: animate out
+            if (activeTab !== 'all' && newStatus !== activeTab) {
+              card.classList.add('shelf-card-leaving');
+              setTimeout(() => {
+                card.remove();
+                const remaining = grid ? grid.querySelectorAll('.shelf-card-item').length : 0;
+                if (remaining === 0) {
+                  if (grid) grid.style.display = 'none';
+                  if (paginationWrap) paginationWrap.style.display = 'none';
+                  if (emptyState) emptyState.style.display = 'block';
+                }
+              }, 300);
+            } else {
+              // Di tab 'Semua' atau status cocok: update badge di tempat
+              card.dataset.status = newStatus;
+              const cfg = statusConfig[newStatus];
+              const badge = card.querySelector('.shelf-status-badge');
+              if (badge && cfg) {
+                badge.style.background = cfg.bg;
+                badge.style.borderColor = cfg.border;
+                badge.style.color = cfg.color;
+                badge.innerHTML = `<i class="fa-solid ${cfg.icon}"></i> <span>${cfg.text}</span>`;
+              }
+              card.classList.add('shelf-card-highlight');
+              setTimeout(() => card.classList.remove('shelf-card-highlight'), 600);
+            }
+          }
+        } else {
+          throw new Error(data.message || 'Gagal mengubah status rak.');
+        }
+      } catch (err) {
+        window.showToast({ title: 'Gagal', message: err.message, type: 'error' });
+      } finally {
+        this.disabled = false;
+      }
+    });
+  });
+
+  // 2. Hapus dari Rak (1-Klik Tanpa Dialog Alert Browser)
+  document.querySelectorAll('.btn-delete-shelf').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const url = this.dataset.url;
+      const bookId = this.dataset.bookId;
+      const card = document.getElementById(`shelf-card-${bookId}`);
+
+      this.disabled = true;
+      this.style.opacity = '0.5';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ _method: 'DELETE' })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.showToast({ title: 'Rak Diperbarui', message: data.message, type: 'info' });
+          updateTabCounters(data.counts);
+
+          if (card) {
+            card.classList.add('shelf-card-leaving');
+            setTimeout(() => {
+              card.remove();
+              const remaining = grid ? grid.querySelectorAll('.shelf-card-item').length : 0;
+              if (remaining === 0) {
+                if (grid) grid.style.display = 'none';
+                if (paginationWrap) paginationWrap.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+              }
+            }, 300);
+          }
+        } else {
+          throw new Error(data.message || 'Gagal menghapus buku dari rak.');
+        }
+      } catch (err) {
+        window.showToast({ title: 'Gagal', message: err.message, type: 'error' });
+        this.disabled = false;
+        this.style.opacity = '1';
+      }
+    });
+  });
+});
+</script>
+@endpush

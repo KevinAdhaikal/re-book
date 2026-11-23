@@ -42,14 +42,48 @@ class FavController extends Controller
         $bookId = (int) $request->book_id;
 
         if ($user->favoriteBooks()->where('book_id', $bookId)->exists()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Buku tersebut sudah ada di daftar Buku Favorit Anda.',
+                ], 422);
+            }
+
             return back()->with('error', 'Buku tersebut sudah ada di daftar Buku Favorit Anda.');
         }
 
         if ($user->favoriteBooks()->count() >= 4) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maksimal 4 Buku Favorit yang dapat dipajang. Silakan hapus salah satu buku terlebih dahulu.',
+                ], 422);
+            }
+
             return back()->with('error', 'Maksimal 4 Buku Favorit yang dapat dipajang. Silakan hapus salah satu buku terlebih dahulu.');
         }
 
         $user->favoriteBooks()->attach($bookId);
+        $book = Book::withAvg('reviews', 'rating')->findOrFail($bookId);
+        $count = $user->favoriteBooks()->count();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Buku berhasil ditambahkan ke Buku Favorit!',
+                'count' => $count,
+                'book' => [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'author' => $book->author,
+                    'genre' => $book->genre,
+                    'cover' => $book->cover ? asset('storage/'.$book->cover) : null,
+                    'rating' => (float) ($book->reviews_avg_rating ?? 0),
+                    'url' => route('books.show', $book->id),
+                    'destroy_url' => route('member.fav.destroy', $book->id),
+                ],
+            ]);
+        }
 
         return back()->with('success', 'Buku berhasil ditambahkan ke Buku Favorit!');
     }
@@ -63,10 +97,18 @@ class FavController extends Controller
         $book = Book::findOrFail($id);
 
         $user->favoriteBooks()->detach($book->id);
+        $count = $user->favoriteBooks()->count();
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
+                'count' => $count,
+                'book' => [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'author' => $book->author,
+                    'genre' => $book->genre,
+                ],
                 'message' => 'Buku berhasil dihapus dari Buku Favorit.',
             ]);
         }
@@ -96,6 +138,7 @@ class FavController extends Controller
                         'message' => 'Maksimal 4 buku favorit dapat dipajang.',
                     ], 422);
                 }
+
                 return back()->with('error', 'Maksimal 4 buku favorit dapat dipajang.');
             }
 

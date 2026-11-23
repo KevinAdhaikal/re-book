@@ -33,11 +33,9 @@
         </div>
 
         <!-- Rating Bintang -->
-        <div style="color: var(--star-rating); font-size: 0.9rem; background: #21262D; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px;">
-          @for ($i = 1; $i <= 5; $i++)
-            <i class="fa-{{ $i <= $r->rating ? 'solid' : 'regular' }} fa-star"></i>
-          @endfor
-          <span style="color: var(--text-main); font-weight: 600; margin-left: 4px;">{{ $r->rating }}.0</span>
+        <div style="color: var(--star-rating); font-size: 0.9rem; background: #21262D; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+          <x-star-rating :rating="$r->rating" size="xs" :showScore="false" />
+          <span style="color: var(--text-main); font-weight: 600; margin-left: 4px;">{{ number_format($r->rating, 1) }}</span>
         </div>
 
       </div>
@@ -100,11 +98,16 @@
       <div style="margin-bottom: 15px;">
         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">Rating Bintang (1-5)</label>
         <select name="rating" id="editRating" required style="width: 100%; padding: 10px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none;">
-          <option value="5">⭐⭐⭐⭐⭐ (5.0 - Sangat Bagus)</option>
-          <option value="4">⭐⭐⭐⭐ (4.0 - Bagus)</option>
+          <option value="5">⭐⭐⭐⭐⭐ (5.0 - Mahakarya)</option>
+          <option value="4.5">⭐⭐⭐⭐½ (4.5 - Luar Biasa)</option>
+          <option value="4">⭐⭐⭐⭐ (4.0 - Sangat Bagus)</option>
+          <option value="3.5">⭐⭐⭐½ (3.5 - Bagus & Menarik)</option>
           <option value="3">⭐⭐⭐ (3.0 - Cukup)</option>
-          <option value="2">⭐⭐ (2.0 - Buruk)</option>
-          <option value="1">⭐ (1.0 - Sangat Buruk)</option>
+          <option value="2.5">⭐⭐½ (2.5 - Biasa Saja)</option>
+          <option value="2">⭐⭐ (2.0 - Kurang)</option>
+          <option value="1.5">⭐½ (1.5 - Kurang Memuaskan)</option>
+          <option value="1">⭐ (1.0 - Buruk)</option>
+          <option value="0.5">½ (0.5 - Sangat Buruk)</option>
         </select>
       </div>
 

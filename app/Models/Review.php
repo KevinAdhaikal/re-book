@@ -16,6 +16,18 @@ class Review extends Model
         'content',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rating' => 'float',
+        ];
+    }
+
     // Relasi ke User (Member yang menulis ulasan)
     public function user()
     {
@@ -42,9 +54,10 @@ class Review extends Model
 
     public function isLikedBy(?User $user = null): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
+
         return $this->likedByUsers()->where('user_id', $user->id)->exists();
     }
 }

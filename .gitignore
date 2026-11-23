@@ -24,3 +24,12 @@ yarn-error.log
 
 # Graphify
 graphify-out/
+
+# Local Assistant / Tooling
+.agents/
+.claude/
+.codex/
+.mcp.json
+boost.json
+opencode.json
+

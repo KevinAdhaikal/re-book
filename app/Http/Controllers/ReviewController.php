@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use App\Models\Review;
 use App\Models\Comment;
-use App\Models\BadWord;
+use App\Models\Review;
 use App\Services\ContentFilterService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
@@ -33,7 +31,11 @@ class ReviewController extends Controller
     {
         $request->validate([
             'book_id' => 'required|exists:books,id',
-            'rating'  => 'required|integer|min:1|max:5',
+            'rating' => ['required', 'numeric', 'min:0.5', 'max:5', function ($attribute, $value, $fail) {
+                if (fmod((float) $value * 2, 1) !== 0.0) {
+                    $fail('Rating harus dalam kelipatan 0.5 (contoh: 3.5, 4.0, 4.5).');
+                }
+            }],
             'content' => 'required|string|min:5|max:1000',
         ]);
 
@@ -45,18 +47,44 @@ class ReviewController extends Controller
             ->first();
 
         if ($existing) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah pernah memberikan ulasan untuk buku ini. Anda dapat mengedit ulasan Anda pada menu Ulasan Saya.',
+                ], 422);
+            }
+
             return back()->with('error', 'Anda sudah pernah memberikan ulasan untuk buku ini. Anda dapat mengedit ulasan Anda pada menu Ulasan Saya.');
         }
 
         // Sensor kata kasar sebelum disimpan
         $cleanContent = $this->filterBadWords($request->content);
 
-        Review::create([
+        $review = Review::create([
             'user_id' => $userId,
             'book_id' => $request->book_id,
-            'rating'  => $request->rating,
+            'rating' => $request->rating,
             'content' => $cleanContent,
         ]);
+
+        $review->load('user');
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Ulasan berhasil diterbitkan!',
+                'review' => [
+                    'id' => $review->id,
+                    'rating' => (float) $review->rating,
+                    'content' => $review->content,
+                    'user_id' => $review->user_id,
+                    'user_name' => $review->user ? $review->user->name : 'Member',
+                    'user_avatar' => $review->user ? $review->user->avatarUrl() : null,
+                    'user_profile_url' => $review->user ? route('users.profile', $review->user->id) : '#',
+                    'created_at_human' => $review->created_at ? $review->created_at->format('d M Y, H:i') : 'Baru saja',
+                ],
+            ]);
+        }
 
         return back()->with('success', 'Ulasan berhasil diterbitkan!');
     }
@@ -74,16 +102,33 @@ class ReviewController extends Controller
         }
 
         $request->validate([
-            'rating'  => 'required|integer|min:1|max:5',
+            'rating' => ['required', 'numeric', 'min:0.5', 'max:5', function ($attribute, $value, $fail) {
+                if (fmod((float) $value * 2, 1) !== 0.0) {
+                    $fail('Rating harus dalam kelipatan 0.5 (contoh: 3.5, 4.0, 4.5).');
+                }
+            }],
             'content' => 'required|string|min:5|max:1000',
         ]);
 
         $cleanContent = $this->filterBadWords($request->content);
 
         $review->update([
-            'rating'  => $request->rating,
+            'rating' => $request->rating,
             'content' => $cleanContent,
         ]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Ulasan berhasil diperbarui!',
+                'review' => [
+                    'id' => $review->id,
+                    'rating' => (float) $review->rating,
+                    'content' => $review->content,
+                    'updated_at_human' => $review->updated_at ? $review->updated_at->format('d M Y, H:i') : 'Baru saja',
+                ],
+            ]);
+        }
 
         return back()->with('success', 'Ulasan berhasil diperbarui!');
     }
@@ -91,7 +136,7 @@ class ReviewController extends Controller
     /**
      * 3. Hapus Ulasan (Hanya oleh Member Pemilik atau Admin)
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $review = Review::findOrFail($id);
 
@@ -100,6 +145,13 @@ class ReviewController extends Controller
         }
 
         $review->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Ulasan berhasil dihapus!',
+            ]);
+        }
 
         return back()->with('success', 'Ulasan berhasil dihapus!');
     }
@@ -115,11 +167,29 @@ class ReviewController extends Controller
 
         $cleanComment = $this->filterBadWords($request->comment);
 
-        Comment::create([
-            'user_id'   => Auth::id(),
+        $comment = Comment::create([
+            'user_id' => Auth::id(),
             'review_id' => $reviewId,
-            'comment'   => $cleanComment,
+            'comment' => $cleanComment,
         ]);
+
+        $comment->load('user');
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Komentar berhasil dikirim!',
+                'comment' => [
+                    'id' => $comment->id,
+                    'comment' => $comment->comment,
+                    'user_id' => $comment->user_id,
+                    'user_name' => $comment->user ? $comment->user->name : 'Member',
+                    'user_avatar' => $comment->user ? $comment->user->avatarUrl() : null,
+                    'user_profile_url' => $comment->user ? route('users.profile', $comment->user->id) : '#',
+                    'created_at_human' => $comment->created_at ? $comment->created_at->diffForHumans() : 'Baru saja',
+                ],
+            ]);
+        }
 
         return back()->with('success', 'Komentar berhasil dikirim!');
     }
@@ -127,7 +197,7 @@ class ReviewController extends Controller
     /**
      * 5. Hapus Komentar Sendiri
      */
-    public function destroyComment($id)
+    public function destroyComment(Request $request, $id)
     {
         $comment = Comment::findOrFail($id);
 
@@ -136,6 +206,13 @@ class ReviewController extends Controller
         }
 
         $comment->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Komentar berhasil dihapus!',
+            ]);
+        }
 
         return back()->with('success', 'Komentar berhasil dihapus!');
     }

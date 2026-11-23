@@ -105,10 +105,12 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       .then(data => {
         if (data && data.success && !data.liked) {
+          window.showToast({ title: 'Batal Suka', message: 'Buku dihapus dari daftar disukai.', type: 'info' });
           // Buku berhasil di-unlike, hilangkan card dengan animasi halus
           if (card) {
+            card.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
             card.style.opacity = '0';
-            card.style.transform = 'scale(0.9)';
+            card.style.transform = 'scale(0.85)';
             setTimeout(() => {
               card.remove();
 
@@ -131,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   </div>
                 `;
               }
-            }, 250);
+            }, 300);
           }
         } else {
           this.style.pointerEvents = 'auto';

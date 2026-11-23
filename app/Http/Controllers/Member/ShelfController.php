@@ -28,8 +28,8 @@ class ShelfController extends Controller
             $search = trim($request->query('search'));
             $query->whereHas('book', function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%")
-                  ->orWhere('genre', 'like', "%{$search}%");
+                    ->orWhere('author', 'like', "%{$search}%")
+                    ->orWhere('genre', 'like', "%{$search}%");
             });
         }
 
@@ -65,11 +65,19 @@ class ShelfController extends Controller
 
         $label = $shelf->status_label;
 
+        $counts = [
+            'all' => $user->readingShelves()->count(),
+            ReadingShelf::STATUS_WANT_TO_READ => $user->readingShelves()->where('status', ReadingShelf::STATUS_WANT_TO_READ)->count(),
+            ReadingShelf::STATUS_CURRENTLY_READING => $user->readingShelves()->where('status', ReadingShelf::STATUS_CURRENTLY_READING)->count(),
+            ReadingShelf::STATUS_READ => $user->readingShelves()->where('status', ReadingShelf::STATUS_READ)->count(),
+        ];
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'status' => $shelf->status,
                 'status_label' => $label,
+                'counts' => $counts,
                 'message' => "Buku berhasil dimasukkan ke rak: {$label}",
             ]);
         }
@@ -85,10 +93,18 @@ class ShelfController extends Controller
         $user = Auth::user();
         ReadingShelf::where('user_id', $user->id)->where('book_id', $bookId)->delete();
 
+        $counts = [
+            'all' => $user->readingShelves()->count(),
+            ReadingShelf::STATUS_WANT_TO_READ => $user->readingShelves()->where('status', ReadingShelf::STATUS_WANT_TO_READ)->count(),
+            ReadingShelf::STATUS_CURRENTLY_READING => $user->readingShelves()->where('status', ReadingShelf::STATUS_CURRENTLY_READING)->count(),
+            ReadingShelf::STATUS_READ => $user->readingShelves()->where('status', ReadingShelf::STATUS_READ)->count(),
+        ];
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'status' => null,
+                'counts' => $counts,
                 'message' => 'Buku berhasil dihapus dari rak bacaan.',
             ]);
         }

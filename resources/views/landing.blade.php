@@ -119,6 +119,39 @@
     display: block;
   }
 
+  /* Animasi Komentar Beranda */
+  @keyframes commentSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .comment-item-entering {
+    animation: commentSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .comment-item-leaving {
+    opacity: 0 !important;
+    transform: translateX(-15px) !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  #book-catalog-container {
+    transition: opacity 0.2s ease;
+  }
+  #book-catalog-container.is-loading {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
   @media (max-width: 1024px) {
     .trending-grid {
       grid-template-columns: repeat(3, 1fr);
@@ -227,7 +260,7 @@
             Katalog Buku
           @endif
         </h2>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">
+        <span id="catalog-total-count" style="font-size: 0.8rem; color: var(--text-muted);">
           Menampilkan {{ $books->total() }} judul dalam koleksi Re:Book
         </span>
       </div>
@@ -235,7 +268,7 @@
       {{-- Kontrol Sortir --}}
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 0.8rem; color: var(--text-muted);">Urutkan:</span>
-        <select onchange="window.location.href=this.value;" style="padding: 5px 10px; background: #161b22; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.82rem; outline: none; cursor: pointer;">
+        <select id="catalog-sort-select" style="padding: 5px 10px; background: #161b22; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 0.82rem; outline: none; cursor: pointer;">
           @php
             $currentSort = request('sort', 'title');
             $baseParams = request()->except('sort');
@@ -258,13 +291,13 @@
       @php
         $genreList = ['Semua', 'Fiksi', 'Manga', 'Novel', 'Sastra', 'Filsafat', 'Self-Dev', 'Fantasi', 'Komik'];
       @endphp
-      <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 20px;">
+      <div id="genre-filter-tabs" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 20px;">
         @foreach($genreList as $g)
           @php
             $isGenreActive = ($g === 'Semua' && (!request('filter_type') || (request('filter_type') === 'all' && !request('search')))) || (request('filter_type') === 'genre' && strcasecmp(request('search'), $g) === 0);
             $genreUrl = $g === 'Semua' ? url('/') : url('/?filter_type=genre&search=' . urlencode($g));
           @endphp
-          <a href="{{ $genreUrl }}" class="filter-pill {{ $isGenreActive ? 'active' : '' }}">
+          <a href="{{ $genreUrl }}" class="filter-pill genre-filter-pill {{ $isGenreActive ? 'active' : '' }}" data-genre="{{ $g }}" data-url="{{ $genreUrl }}">
             {{ $g }}
           </a>
         @endforeach
@@ -325,36 +358,9 @@
       @endif
     @else
       {{-- Grid Buku --}}
-      <div class="book-grid">
-        @php
-          $userLikedIds = auth()->check() ? \Illuminate\Support\Facades\DB::table('book_likes')->where('user_id', auth()->id())->pluck('book_id')->toArray() : [];
-        @endphp
-
-        @forelse ($books as $b)
-          @php
-            $isLiked = in_array($b->id, $userLikedIds);
-          @endphp
-          <x-book-card :book="$b" :isLiked="$isLiked" />
-        @empty
-          <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
-            <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; color: #30363d; margin-bottom: 10px;"></i>
-            <h3 style="color: var(--text-main); font-size: 1rem; margin-bottom: 6px;">Buku Tidak Ditemukan</h3>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
-              Tidak ada buku yang cocok dengan pencarian "{{ request('search') }}".
-            </p>
-            <a href="{{ url('/') }}" style="background: var(--member-accent); color: white; padding: 7px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-block;">
-              Kembali ke Semua Koleksi
-            </a>
-          </div>
-        @endforelse
+      <div id="book-catalog-container">
+        @include('partials.book_grid', ['books' => $books])
       </div>
-
-      {{-- Pagination Links --}}
-      @if ($books->hasPages())
-        <div style="margin-top: 24px; display: flex; justify-content: center;">
-          {{ $books->links() }}
-        </div>
-      @endif
     @endif
 
   </section>
@@ -424,10 +430,10 @@
             </p>
 
             {{-- Thread Balasan Komentar --}}
-            @if($review->comments->count() > 0)
-              <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+            <div id="landing-comments-wrap-{{ $review->id }}" style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid var(--border-color); display: {{ $review->comments->count() > 0 ? 'flex' : 'none' }}; flex-direction: column; gap: 8px;">
+              <div id="landing-comments-list-{{ $review->id }}" style="display: flex; flex-direction: column; gap: 8px;">
                 @foreach($review->comments->take(2) as $comment)
-                  <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
+                  <div id="landing-comment-item-{{ $comment->id }}" class="landing-comment-item" style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; transition: all 0.25s ease;">
                     <div>
                       <a href="{{ $comment->user ? route('users.profile', $comment->user->id) : '#' }}" style="color: #79c0ff; font-weight: 600; text-decoration: none;">
                         {{ $comment->user->name ?? 'Member' }}
@@ -436,32 +442,28 @@
                     </div>
 
                     @if(auth()->check() && (auth()->id() === $comment->user_id || auth()->user()->role === 'admin'))
-                      <form action="{{ route('member.comments.destroy', $comment->id) }}" method="POST" onsubmit="return confirm('Hapus komentar Anda?');" style="margin: 0;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" title="Hapus Komentar" style="background: none; border: none; color: #8b949e; font-size: 0.72rem; cursor: pointer; padding: 2px 4px;">
-                          <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                      </form>
+                      <button type="button" class="btn-delete-comment-ajax" data-id="{{ $comment->id }}" data-url="{{ route('member.comments.destroy', $comment->id) }}" data-review-id="{{ $review->id }}" title="Hapus Komentar" style="background: none; border: none; color: #8b949e; font-size: 0.72rem; cursor: pointer; padding: 2px 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#f85149'" onmouseout="this.style.color='#8b949e'">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
                     @endif
                   </div>
                 @endforeach
-                @if($review->comments->count() > 2)
-                  <a href="{{ route('books.show', $review->book_id) }}" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none;">
-                    + {{ $review->comments->count() - 2 }} komentar lainnya di halaman buku &rarr;
-                  </a>
-                @endif
               </div>
-            @endif
+              @if($review->comments->count() > 2)
+                <a href="{{ route('books.show', $review->book_id) }}" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none;">
+                  + {{ $review->comments->count() - 2 }} komentar lainnya di halaman buku &rarr;
+                </a>
+              @endif
+            </div>
 
             {{-- Form Cepat Balas Komentar --}}
             @auth
-              <form action="{{ route('member.comments.store', $review->id) }}" method="POST" style="display: flex; gap: 8px;">
+              <form class="form-comment-landing-ajax" action="{{ route('member.comments.store', $review->id) }}" method="POST" data-review-id="{{ $review->id }}" style="display: flex; gap: 8px;">
                 @csrf
                 <input type="text" name="comment" placeholder="Tulis tanggapan untuk ulasan ini..." required
                   style="flex: 1; padding: 6px 12px; background: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 0.82rem; outline: none;">
-                <button type="submit" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 14px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: background 0.15s ease;">
-                  Balas
+                <button type="submit" class="btn-submit-comment" style="background: #21262d; border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 14px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: background 0.15s ease; display: inline-flex; align-items: center; gap: 6px;">
+                  <span class="btn-text">Balas</span>
                 </button>
               </form>
             @endauth
@@ -484,63 +486,272 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const csrfToken = '{{ csrf_token() }}';
-  
-  document.querySelectorAll('.btn-like-toggle').forEach(button => {
-    button.addEventListener('click', function (e) {
+
+  // ==========================================
+  // 1. REUSABLE LIKE BUTTON HANDLERS
+  // ==========================================
+  function initLikeButtons(context = document) {
+    context.querySelectorAll('.btn-like-toggle').forEach(button => {
+      if (button.dataset.likeBound === 'true') return;
+      button.dataset.likeBound = 'true';
+
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const actionUrl = this.dataset.action;
+        const icon = this.querySelector('i');
+
+        this.style.pointerEvents = 'none';
+        this.style.transform = 'scale(0.85)';
+
+        fetch(actionUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (response.status === 401) {
+            window.location.href = '{{ route('login') }}';
+            return;
+          }
+          return response.json();
+        })
+        .then(data => {
+          this.style.pointerEvents = 'auto';
+          this.style.transform = 'scale(1)';
+
+          if (data && data.success) {
+            if (data.liked) {
+              icon.classList.remove('fa-regular');
+              icon.classList.add('fa-solid');
+              this.style.color = '#F78166';
+              this.setAttribute('title', 'Batal Sukai');
+            } else {
+              icon.classList.remove('fa-solid');
+              icon.classList.add('fa-regular');
+              this.style.color = '#8B949E';
+              this.setAttribute('title', 'Sukai Buku');
+            }
+
+            const countEl = document.getElementById('book-likes-count-' + data.book_id);
+            if (countEl && typeof data.book_likes_count !== 'undefined') {
+              countEl.textContent = data.book_likes_count;
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Like toggle error:', err);
+          this.style.pointerEvents = 'auto';
+          this.style.transform = 'scale(1)';
+        });
+      });
+    });
+  }
+
+  initLikeButtons(document);
+
+  // ==========================================
+  // 2. AJAX BALAS KOMENTAR DI BERANDA
+  // ==========================================
+  document.querySelectorAll('.form-comment-landing-ajax').forEach(form => {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
-      e.stopPropagation();
-      
-      const actionUrl = this.dataset.action;
-      const icon = this.querySelector('i');
-      
-      this.style.pointerEvents = 'none';
-      this.style.transform = 'scale(0.85)';
-      
-      fetch(actionUrl, {
+      const reviewId = this.dataset.reviewId;
+      const inputEl = this.querySelector('input[name="comment"]');
+      const submitBtn = this.querySelector('.btn-submit-comment');
+      const btnText = this.querySelector('.btn-text');
+      const commentText = inputEl ? inputEl.value.trim() : '';
+
+      if (!commentText) return;
+
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      if (btnText) btnText.textContent = '...';
+
+      try {
+        const formData = new FormData(this);
+        const res = await fetch(this.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          window.showToast({ title: 'Terkirim', message: data.message, type: 'success' });
+          inputEl.value = '';
+
+          const wrapEl = document.getElementById(`landing-comments-wrap-${reviewId}`);
+          const listEl = document.getElementById(`landing-comments-list-${reviewId}`);
+
+          if (wrapEl) wrapEl.style.display = 'flex';
+
+          if (listEl) {
+            const newComment = document.createElement('div');
+            newComment.id = `landing-comment-item-${data.comment.id}`;
+            newComment.className = 'landing-comment-item comment-item-entering';
+            newComment.style.cssText = 'font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; transition: all 0.25s ease;';
+            newComment.innerHTML = `
+              <div>
+                <a href="${data.comment.user_profile_url}" style="color: #79c0ff; font-weight: 600; text-decoration: none;">
+                  ${data.comment.user_name}
+                </a>: 
+                <span style="color: var(--text-main);">${data.comment.comment}</span>
+              </div>
+              <button type="button" class="btn-delete-comment-ajax" data-id="${data.comment.id}" data-url="/member/comments/${data.comment.id}" data-review-id="${reviewId}" title="Hapus Komentar" style="background: none; border: none; color: #8b949e; font-size: 0.72rem; cursor: pointer; padding: 2px 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#f85149'" onmouseout="this.style.color='#8b949e'">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            `;
+            listEl.appendChild(newComment);
+          }
+        } else {
+          throw new Error(data.message || 'Gagal mengirim tanggapan.');
+        }
+      } catch (err) {
+        window.showToast({ title: 'Gagal', message: err.message, type: 'error' });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        if (btnText) btnText.textContent = 'Balas';
+      }
+    });
+  });
+
+  // ==========================================
+  // 3. 1-KLIK HAPUS KOMENTAR INSTAN (BERANDA)
+  // ==========================================
+  document.addEventListener('click', async function (e) {
+    const btn = e.target.closest('.btn-delete-comment-ajax');
+    if (!btn) return;
+    e.preventDefault();
+
+    const commentId = btn.dataset.id;
+    const url = btn.dataset.url;
+    const commentItem = document.getElementById(`landing-comment-item-${commentId}`);
+
+    btn.disabled = true;
+    if (commentItem) {
+      commentItem.classList.add('comment-item-leaving');
+    }
+
+    try {
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': csrfToken,
           'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
           'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        if (response.status === 401) {
-          window.location.href = '{{ route('login') }}';
-          return;
-        }
-        return response.json();
-      })
-      .then(data => {
-        this.style.pointerEvents = 'auto';
-        this.style.transform = 'scale(1)';
-        
-        if (data && data.success) {
-          if (data.liked) {
-            icon.classList.remove('fa-regular');
-            icon.classList.add('fa-solid');
-            this.style.color = '#F78166';
-            this.setAttribute('title', 'Batal Sukai');
-          } else {
-            icon.classList.remove('fa-solid');
-            icon.classList.add('fa-regular');
-            this.style.color = '#8B949E';
-            this.setAttribute('title', 'Sukai Buku');
-          }
-
-          const countEl = document.getElementById('book-likes-count-' + data.book_id);
-          if (countEl && typeof data.book_likes_count !== 'undefined') {
-            countEl.textContent = data.book_likes_count;
-          }
-        }
-      })
-      .catch(err => {
-        console.error('Like toggle error:', err);
-        this.style.pointerEvents = 'auto';
-        this.style.transform = 'scale(1)';
+        },
+        body: JSON.stringify({ _method: 'DELETE' })
       });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        window.showToast({ title: 'Dihapus', message: data.message, type: 'info' });
+        setTimeout(() => {
+          if (commentItem) commentItem.remove();
+        }, 250);
+      } else {
+        throw new Error(data.message || 'Gagal menghapus komentar.');
+      }
+    } catch (err) {
+      if (commentItem) commentItem.classList.remove('comment-item-leaving');
+      btn.disabled = false;
+      window.showToast({ title: 'Gagal', message: err.message, type: 'error' });
+    }
+  });
+
+  // ==========================================
+  // 4. INSTANT KATALOG FILTER & SORTIR (AJAX + HISTORY)
+  // ==========================================
+  const catalogContainer = document.getElementById('book-catalog-container');
+  const catalogTotalCount = document.getElementById('catalog-total-count');
+  const sortSelect = document.getElementById('catalog-sort-select');
+
+  async function loadCatalog(targetUrl, pushState = true) {
+    if (!catalogContainer) return;
+
+    catalogContainer.classList.add('is-loading');
+
+    try {
+      const separator = targetUrl.includes('?') ? '&' : '?';
+      const ajaxUrl = targetUrl + separator + 'ajax=1';
+
+      const res = await fetch(ajaxUrl, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      });
+
+      const data = await res.json();
+
+      if (data && data.success) {
+        catalogContainer.innerHTML = data.html;
+        if (catalogTotalCount && typeof data.total !== 'undefined') {
+          catalogTotalCount.textContent = `Menampilkan ${data.total} judul dalam koleksi Re:Book`;
+        }
+
+        initLikeButtons(catalogContainer);
+
+        if (pushState) {
+          window.history.pushState({ url: targetUrl }, '', targetUrl);
+        }
+      }
+    } catch (err) {
+      console.error('Catalog AJAX load error:', err);
+      // Fallback reload jika terjadi kesalahan koneksi
+      window.location.href = targetUrl;
+    } finally {
+      catalogContainer.classList.remove('is-loading');
+    }
+  }
+
+  // Klik Filter Genre Pill
+  document.querySelectorAll('.genre-filter-pill').forEach(pill => {
+    pill.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetUrl = this.dataset.url || this.href;
+
+      document.querySelectorAll('.genre-filter-pill').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+
+      loadCatalog(targetUrl);
     });
+  });
+
+  // Ganti Pilihan Sortir
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function () {
+      loadCatalog(this.value);
+    });
+  }
+
+  // Delegasi Klik Link Pagination
+  document.addEventListener('click', function (e) {
+    const pageLink = e.target.closest('.catalog-pagination-wrap a');
+    if (!pageLink) return;
+
+    e.preventDefault();
+    loadCatalog(pageLink.href);
+
+    const catalogSection = document.getElementById('katalog-buku');
+    if (catalogSection) {
+      catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // Handle Browser Back / Forward Button
+  window.addEventListener('popstate', function () {
+    loadCatalog(window.location.href, false);
   });
 });
 </script>

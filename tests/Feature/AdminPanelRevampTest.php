@@ -2,13 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Models\BadWord;
 use App\Models\Book;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminPanelRevampTest extends TestCase
 {
     protected $admin;
+
     protected $member;
 
     protected function setUp(): void
@@ -26,7 +30,7 @@ class AdminPanelRevampTest extends TestCase
         );
 
         $this->member = User::where('role', 'member')->first();
-        if (!$this->member) {
+        if (! $this->member) {
             $this->member = User::create([
                 'name' => 'Member Test Admin',
                 'email' => 'member_test_admin@rebook.com',
@@ -141,7 +145,7 @@ class AdminPanelRevampTest extends TestCase
 
     public function test_blocked_member_session_is_terminated_by_check_role_middleware()
     {
-        $uniqueEmail = 'blocked_' . uniqid() . '@rebook.com';
+        $uniqueEmail = 'blocked_'.uniqid().'@rebook.com';
         $blockedMember = User::create([
             'name' => 'Blocked Member Session Test',
             'email' => $uniqueEmail,
@@ -162,7 +166,7 @@ class AdminPanelRevampTest extends TestCase
 
     public function test_bad_word_sanitization_and_unique_validation()
     {
-        $uniqueWord = 'kasar_' . uniqid();
+        $uniqueWord = 'kasar_'.uniqid();
 
         // Add a bad word
         $response = $this->actingAs($this->admin)->post(route('admin.words.store'), [
@@ -172,18 +176,18 @@ class AdminPanelRevampTest extends TestCase
 
         // Add same word with whitespace and mixed casing
         $responseDuplicate = $this->actingAs($this->admin)->post(route('admin.words.store'), [
-            'word' => '  ' . strtoupper($uniqueWord) . '  ',
+            'word' => '  '.strtoupper($uniqueWord).'  ',
         ]);
         $responseDuplicate->assertSessionHasErrors(['word']);
 
-        \App\Models\BadWord::where('word', strtolower($uniqueWord))->delete();
+        BadWord::where('word', strtolower($uniqueWord))->delete();
     }
 
     public function test_admin_can_add_batch_bad_words_and_test_live_censor_endpoint()
     {
-        $w1 = 'batch1_' . uniqid();
-        $w2 = 'batch2_' . uniqid();
-        $w3 = 'batch3_' . uniqid();
+        $w1 = 'batch1_'.uniqid();
+        $w2 = 'batch2_'.uniqid();
+        $w3 = 'batch3_'.uniqid();
 
         // 1. Batch insert separated by commas and newlines
         $responseBatch = $this->actingAs($this->admin)->post(route('admin.words.store'), [
@@ -206,16 +210,16 @@ class AdminPanelRevampTest extends TestCase
         $this->assertStringContainsString('******', $responseTest->json('filtered'));
 
         // Cleanup
-        \App\Models\BadWord::whereIn('word', [strtolower($w1), strtolower($w2), strtolower($w3)])->delete();
+        BadWord::whereIn('word', [strtolower($w1), strtolower($w2), strtolower($w3)])->delete();
     }
 
     public function test_book_cover_file_cleanup_on_delete()
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
 
-        $uploaded = \Illuminate\Http\UploadedFile::fake()->create('test_cover.jpg', 100, 'image/jpeg');
+        $uploaded = UploadedFile::fake()->create('test_cover.jpg', 100, 'image/jpeg');
         $path = $uploaded->store('covers', 'public');
-        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($path);
+        Storage::disk('public')->assertExists($path);
 
         $book = Book::create([
             'title' => 'Buku Hapus Cover Test',
@@ -228,7 +232,19 @@ class AdminPanelRevampTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('admin.books.destroy', $book->id));
         $response->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($path);
+        Storage::disk('public')->assertMissing($path);
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
+    }
+
+    public function test_admin_books_redirects_create_and_avoids_crash()
+    {
+        $response = $this->actingAs($this->admin)->get('/admin/books');
+        $response->assertRedirect(route('admin.books.manage'));
+
+        $responseCreate = $this->actingAs($this->admin)->get('/admin/books/create');
+        $responseCreate->assertRedirect(route('admin.books.manage'));
+
+        $responseEdit = $this->actingAs($this->admin)->get('/admin/books/1/edit');
+        $responseEdit->assertStatus(404);
     }
 }

@@ -1,20 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BookController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BadWordController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Member\ProfileController;
-use App\Http\Controllers\Member\LikeController;
+use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\ReviewModerationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\Member\FavController;
+use App\Http\Controllers\Member\LikeController;
+use App\Http\Controllers\Member\ProfileController;
 use App\Http\Controllers\Member\ShelfController;
 use App\Http\Controllers\Member\SocialController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\Admin\ReviewModerationController;
-use App\Http\Controllers\Admin\ExportController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,12 +44,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-
 // ==========================================
 // 2. MEMBER ROUTES (Sidebar Member & Authenticated Actions)
 // ==========================================
 Route::middleware(['auth'])->prefix('member')->as('member.')->group(function () {
-    
+
     // Profil & Showcase 4 Buku Favorit
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -91,12 +90,11 @@ Route::middleware(['auth'])->prefix('member')->as('member.')->group(function () 
     Route::post('/users/{id}/follow', [SocialController::class, 'toggleFollow'])->name('users.follow');
 });
 
-
 // ==========================================
 // 3. ADMIN ROUTES (Sidebar Admin)
 // ==========================================
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(function () {
-    
+
     // Dashboard Overview
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -104,10 +102,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-block', [UserController::class, 'toggleBlock'])->name('users.toggle-block');
 
-    // Kelola Daftar Buku (CRUD: List, Tambah, Edit, Hapus)
-    Route::resource('books', BookController::class)->except(['index', 'show']);
+    // Kelola Daftar Buku (CRUD via Modal di halaman kelola buku)
     Route::get('/books-manage', [BookController::class, 'manage'])->name('books.manage');
-    Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
+    Route::get('/books', fn () => redirect()->route('admin.books.manage'));
+    Route::get('/books/create', fn () => redirect()->route('admin.books.manage'));
+    Route::resource('books', BookController::class)->only(['store', 'update', 'destroy']);
 
     // Filter Kata Kasar (Sensitivitas Teks)
     Route::get('/filter-words', [BadWordController::class, 'index'])->name('words.index');

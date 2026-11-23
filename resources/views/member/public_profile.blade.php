@@ -38,22 +38,22 @@
             </span>
           </div>
 
-          {{-- Tombol Follow / Unfollow --}}
+          {{-- Tombol Follow / Unfollow (Optimistic UI) --}}
           @auth
             @if(auth()->id() !== $member->id)
               @php
                 $isFollowing = auth()->user()->isFollowing($member->id);
               @endphp
-              <form action="{{ route('member.users.follow', $member->id) }}" method="POST" style="margin: 0;">
-                @csrf
-                <button type="submit"
-                        style="background: {{ $isFollowing ? '#21262d' : 'var(--member-accent)' }};
-                               border: 1px solid {{ $isFollowing ? 'var(--border-color)' : 'var(--member-accent)' }};
-                               color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                  <i class="fa-solid {{ $isFollowing ? 'fa-user-check' : 'fa-user-plus' }}"></i>
-                  <span>{{ $isFollowing ? 'Mengikuti' : 'Ikuti Member' }}</span>
-                </button>
-              </form>
+              <button type="button" id="btn-toggle-follow"
+                      data-user-id="{{ $member->id }}"
+                      data-following="{{ $isFollowing ? 'true' : 'false' }}"
+                      data-url="{{ route('member.users.follow', $member->id) }}"
+                      style="background: {{ $isFollowing ? '#21262d' : 'var(--member-accent)' }};
+                             border: 1px solid {{ $isFollowing ? 'var(--border-color)' : 'var(--member-accent)' }};
+                             color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                <i class="fa-solid {{ $isFollowing ? 'fa-user-check' : 'fa-user-plus' }}" id="icon-toggle-follow"></i>
+                <span id="text-toggle-follow">{{ $isFollowing ? 'Mengikuti' : 'Ikuti Member' }}</span>
+              </button>
             @endif
           @else
             <a href="{{ route('login') }}" style="background: var(--member-accent); color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
@@ -90,7 +90,7 @@
         <!-- Statistik Profil (Termasuk Followers & Following) -->
         <div style="display: flex; gap: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
           <div>
-            <strong style="color: white; font-size: 1rem;">{{ $member->followers()->count() }}</strong> Pengikut
+            <strong id="member-followers-count" style="color: white; font-size: 1rem;">{{ $member->followers()->count() }}</strong> Pengikut
           </div>
           <div>
             <strong style="color: white; font-size: 1rem;">{{ $member->following()->count() }}</strong> Mengikuti
@@ -173,8 +173,9 @@
                   </span>
                 </div>
 
-                <div style="background: rgba(227, 179, 65, 0.12); border: 1px solid var(--star-rating); padding: 3px 10px; border-radius: 15px; color: var(--star-rating); font-weight: bold; font-size: 0.85rem;">
-                  <i class="fa-solid fa-star"></i> {{ $rev->rating }}.0 / 5.0
+                <div style="background: rgba(227, 179, 65, 0.12); border: 1px solid var(--star-rating); padding: 3px 10px; border-radius: 15px; color: var(--star-rating); font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                  <x-star-rating :rating="$rev->rating" size="xs" :showScore="false" />
+                  <span>{{ number_format($rev->rating, 1) }} / 5.0</span>
                 </div>
               </div>
 
@@ -200,3 +201,81 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btnFollow = document.getElementById('btn-toggle-follow');
+  if (btnFollow) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    btnFollow.addEventListener('click', async function () {
+      const isCurrentlyFollowing = btnFollow.dataset.following === 'true';
+      const newFollowingState = !isCurrentlyFollowing;
+      const url = btnFollow.dataset.url;
+      const iconEl = document.getElementById('icon-toggle-follow');
+      const textEl = document.getElementById('text-toggle-follow');
+      const countEl = document.getElementById('member-followers-count');
+
+      let currentCount = parseInt(countEl ? countEl.textContent : '0') || 0;
+      let nextCount = newFollowingState ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+      // Optimistic visual update
+      btnFollow.dataset.following = newFollowingState ? 'true' : 'false';
+      if (countEl) countEl.textContent = nextCount;
+
+      if (newFollowingState) {
+        btnFollow.style.background = '#21262d';
+        btnFollow.style.borderColor = 'var(--border-color)';
+        if (iconEl) iconEl.className = 'fa-solid fa-user-check';
+        if (textEl) textEl.textContent = 'Mengikuti';
+      } else {
+        btnFollow.style.background = 'var(--member-accent)';
+        btnFollow.style.borderColor = 'var(--member-accent)';
+        if (iconEl) iconEl.className = 'fa-solid fa-user-plus';
+        if (textEl) textEl.textContent = 'Ikuti Member';
+      }
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (countEl && typeof data.followers_count !== 'undefined') {
+            countEl.textContent = data.followers_count;
+          }
+          window.showToast({
+            title: newFollowingState ? 'Mengikuti' : 'Berhenti Mengikuti',
+            message: data.message,
+            type: 'success'
+          });
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (err) {
+        // Rollback
+        btnFollow.dataset.following = isCurrentlyFollowing ? 'true' : 'false';
+        if (countEl) countEl.textContent = currentCount;
+        if (isCurrentlyFollowing) {
+          btnFollow.style.background = '#21262d';
+          btnFollow.style.borderColor = 'var(--border-color)';
+          if (iconEl) iconEl.className = 'fa-solid fa-user-check';
+          if (textEl) textEl.textContent = 'Mengikuti';
+        } else {
+          btnFollow.style.background = 'var(--member-accent)';
+          btnFollow.style.borderColor = 'var(--member-accent)';
+          if (iconEl) iconEl.className = 'fa-solid fa-user-plus';
+          if (textEl) textEl.textContent = 'Ikuti Member';
+        }
+        window.showToast({ title: 'Gagal', message: err.message || 'Koneksi bermasalah.', type: 'error' });
+      }
+    });
+  }
+});
+</script>
+@endpush

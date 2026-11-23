@@ -128,7 +128,7 @@
           </td>
           <td>
             <span style="color: var(--star-rating); font-weight: 700; font-size: 0.85rem;">
-              ⭐ {{ $r->rating }}.0
+              ⭐ {{ number_format($r->rating, 1) }}
             </span>
           </td>
           <td>
